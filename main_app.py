@@ -87,6 +87,10 @@ if "industry" not in st.session_state:
     st.session_state.industry = "future_energy"
 if "company" not in st.session_state:
     st.session_state.company = "蜀能智造"
+if "role" not in st.session_state:
+    st.session_state.role = "数据管家"
+if "target" not in st.session_state:
+    st.session_state.target = "降本增效"
 
 def spend(name, amt):
     if amt <= 0:
@@ -108,6 +112,7 @@ st.sidebar.title("💎 数据资产经营")
 st.sidebar.metric("剩余预算", f"¥{st.session_state.budget/10000:.0f}万")
 st.sidebar.metric("累计收入", f"¥{st.session_state.revenue/10000:.0f}万")
 st.sidebar.write(f"**企业**：{st.session_state.company}")
+st.sidebar.write(f"**角色**：{st.session_state.role} ｜ **目标**：{st.session_state.target}")
 st.sidebar.write("**9层能力路线图**：管→治→用→值")
 
 # ========== Tab导航 ==========
@@ -117,6 +122,47 @@ tab0, tab1, tab2, tab3, tab4 = st.tabs(["📖 实验导览","💰 管数据","�
 with tab0:
     st.title("💎 AI企业数据资产化与合规治理虚拟仿真实验")
     st.markdown("---")
+
+    st.subheader("🧑‍💼 步骤 0 · 角色与「人单合一」目标")
+    st.write("领取 500 万预算，先定角色与目标——角色决定复盘点评的关注点，目标决定你的经营重心（全程留痕）。")
+    rc1, rc2 = st.columns(2)
+    with rc1:
+        role_sel = st.selectbox(
+            "选择你的角色：",
+            ["数据管家", "数据产品经理", "首席数据官"],
+            index=["数据管家", "数据产品经理", "首席数据官"].index(
+                st.session_state.role
+            )
+            if st.session_state.role in ["数据管家", "数据产品经理", "首席数据官"]
+            else 0,
+            key="role_sel",
+        )
+        st.session_state.role = role_sel
+        role_desc = {
+            "数据管家": "数据治理与合规，守住底线",
+            "数据产品经理": "数据变现与运营，放大价值",
+            "首席数据官": "统筹全局，人单合一",
+        }[role_sel]
+        st.caption(role_desc)
+    with rc2:
+        target_sel = st.selectbox(
+            "选择你的「人单合一」目标：",
+            ["降本增效", "合规避险", "价值创造"],
+            index=["降本增效", "合规避险", "价值创造"].index(
+                st.session_state.target
+            )
+            if st.session_state.target in ["降本增效", "合规避险", "价值创造"]
+            else 0,
+            key="target_sel",
+        )
+        st.session_state.target = target_sel
+        target_desc = {
+            "降本增效": "省 50 万治理成本",
+            "合规避险": "规避 100 万罚款风险",
+            "价值创造": "年增收 200 万",
+        }[target_sel]
+        st.caption(target_desc)
+    st.success(f"🎯 角色：{st.session_state.role}｜目标：{st.session_state.target}——已写入档案，能力画像复盘会按此点评")
 
     st.subheader("🏭 选择案例行业")
     st.write("四大案例均基于四川真实产业，共用同一套框架，但数据场景与风险事件不同：")
@@ -321,18 +367,26 @@ with tab3:
             st.success(f"✅ 知识图谱已建（已扣30万，剩余{st.session_state.budget/10000:.0f}万）")
 
     st.subheader("⑩ 买算法")
+    trace_ok = step_done(7)
+    income_mult = 1.0 if trace_ok else 0.5
+    if not trace_ok:
+        st.warning("⚠️ 未部署可信溯源：算法与专家收益按 **5 折** 兑现——可信是收益生效的前提（去「治数据」部署第⑦步）")
+    algo_income = int(500000 * income_mult)
+    expert_income = int(600000 * income_mult)
     if st.button("采购故障预测算法（-30万）", key="s10", disabled=step_done(10) or not st.session_state.started):
         if spend("步骤10-算法", 300000):
             st.session_state.done.add(10)
-            st.session_state.revenue += 500000
-            st.success(f"✅ 算法上线，年省50万（已扣30万，剩余{st.session_state.budget/10000:.0f}万）")
+            st.session_state.revenue += algo_income
+            note = f"（未部署溯源按5折：+{algo_income/10000:.0f}万/年）" if income_mult < 1 else ""
+            st.success(f"✅ 算法上线，年省{algo_income/10000:.0f}万{note}（已扣30万，剩余{st.session_state.budget/10000:.0f}万）")
 
     st.subheader("⑪ 请专家优化")
     if st.button("聘请算法专家（-40万）", key="s11", disabled=step_done(11) or not st.session_state.started):
         if spend("步骤11-专家", 400000):
             st.session_state.done.add(11)
-            st.session_state.revenue += 600000
-            st.success(f"✅ 专家到位，年省再增60万（已扣40万，剩余{st.session_state.budget/10000:.0f}万）")
+            st.session_state.revenue += expert_income
+            note = f"（未部署溯源按5折：+{expert_income/10000:.0f}万/年）" if income_mult < 1 else ""
+            st.success(f"✅ 专家到位，年省再增{expert_income/10000:.0f}万{note}（已扣40万，剩余{st.session_state.budget/10000:.0f}万）")
 
     # 步骤12：六维估值
     st.subheader("⑫ 六维估值 ⭐")
@@ -343,6 +397,8 @@ with tab3:
         st.session_state.s12_e1 = None
     if "s12_e2" not in st.session_state:
         st.session_state.s12_e2 = None
+    if "s12_e3" not in st.session_state:
+        st.session_state.s12_e3 = None
     if "s12_strategy" not in st.session_state:
         st.session_state.s12_strategy = None
 
@@ -411,8 +467,29 @@ with tab3:
                     st.session_state.revenue -= 100000
                     st.session_state.s12_e2 = "C"
                     st.rerun()
+        elif st.session_state.s12_e3 is None:
+            st.success("✅ 两个风险事件已处理")
+            st.write("**🎲 风险事件3：AI 算法事故**")
+            st.error("⚠️ 已上线的预测算法在生产中误报，引发产线停摆，客户要求追责赔偿！")
+            cA,cB,cC = st.columns(3)
+            with cA:
+                if st.button("A 紧急回滚并修复(-25万，收入不变)", key="e3a"):
+                    spend("AI事故-回滚修复", 250000)
+                    st.session_state.s12_e3 = "A"
+                    st.rerun()
+            with cB:
+                if st.button("B 人工复核兜底(-15万，收入-15万)", key="e3b"):
+                    spend("AI事故-人工兜底", 150000)
+                    st.session_state.revenue -= 150000
+                    st.session_state.s12_e3 = "B"
+                    st.rerun()
+            with cC:
+                if st.button("C 继续运行(0万，收入-60万)", key="e3c"):
+                    st.session_state.revenue -= 600000
+                    st.session_state.s12_e3 = "C"
+                    st.rerun()
         else:
-            st.success(f"✅ 两个风险事件已处理")
+            st.success(f"✅ 三个风险事件已处理")
             st.write("**📈 价值挖掘策略三选一**（点击下方按钮选择你的变现策略）")
             cA,cB,cC = st.columns(3)
             with cA:
@@ -454,7 +531,7 @@ with tab3:
 # ============ Tab4：能力画像 ============
 with tab4:
     st.header("📈 你的数据资产经营报告")
-    st.write(f"**企业**：{st.session_state.company}")
+    st.write(f"**企业**：{st.session_state.company} ｜ **角色**：{st.session_state.role} ｜ **目标**：{st.session_state.target}")
     total_cost = INIT_BUDGET - st.session_state.budget
     st.metric("总投入", f"{total_cost/10000:.0f}万")
     st.metric("累计收入", f"{st.session_state.revenue/10000:.0f}万")
@@ -466,10 +543,13 @@ with tab4:
 
     st.write("**收入构成**（为什么累计收入是这么多，一笔笔算给你看）")
     rev_items = []
+    mult = 1.0 if step_done(7) else 0.5
     if step_done(10):
-        rev_items.append(("采购故障预测算法上线", "+50万/年"))
+        algo_amt = int(50 * mult)
+        rev_items.append((f"采购故障预测算法上线{'（未部署溯源按5折）' if mult < 1 else ''}", f"+{algo_amt}万/年"))
     if step_done(11):
-        rev_items.append(("聘请算法专家优化", "+60万/年"))
+        expert_amt = int(60 * mult)
+        rev_items.append((f"聘请算法专家优化{'（未部署溯源按5折）' if mult < 1 else ''}", f"+{expert_amt}万/年"))
     strat = st.session_state.get("s12_strategy")
     if strat == "场景服务":
         rev_items.append(("拓展场景服务", "+45万"))
@@ -486,14 +566,61 @@ with tab4:
         rev_items.append(("合规部分整改罚款", "-25万"))
     if st.session_state.get("s12_e2") == "C":
         rev_items.append(("被动接受致用户流失", "-10万"))
+    e3 = st.session_state.get("s12_e3")
+    if e3 == "B":
+        rev_items.append(("AI事故-人工兜底减收", "-15万"))
+    elif e3 == "C":
+        rev_items.append(("AI事故-继续运行减收", "-60万"))
     if rev_items:
         for k, v in rev_items:
             st.write(f"- {k}: {v}")
     st.write(f"**合计累计收入：{st.session_state.revenue/10000:.0f}万**")
 
     total_cost = INIT_BUDGET - st.session_state.budget
+    st.write("**📐 口径对照：治理六维 vs 海尔「共赢增值表」生态六维**")
+    st.caption("本实验的六维估值采用「治理六维」，衡量数据资产的质量与合规水平；参考方案中的「生态六维」是另一套经营口径（共赢增值表），二者互补不冲突。")
+    dim1, dim2 = st.columns(2)
+    with dim1:
+        st.markdown("**治理六维（本实验采用）**")
+        gov_dims = [
+            ("可用性", "统一管理后数据能调能算"),
+            ("可信性", "可追溯、可回滚、敢给AI用"),
+            ("完整性", "清洗补全后无缺漏"),
+            ("可追溯性", "血缘清晰、留痕完备"),
+            ("标准化", "统一编码消除同质异码"),
+            ("合规性", "脱敏分级、审计留痕"),
+        ]
+        for k, v in gov_dims:
+            st.write(f"- **{k}**：{v}")
+    with dim2:
+        st.markdown("**海尔生态六维（共赢增值表·参考口径）**")
+        eco_dims = [
+            ("用户资源", "可触达的用户规模与活跃度"),
+            ("资源方", "生态资源方的数量与质量"),
+            ("生态总价值", "生态整体创造的价值总量"),
+            ("收入", "经营产生的现金收入"),
+            ("成本", "投入的资源与费用"),
+            ("边际收益", "收入与成本之差"),
+        ]
+        for k, v in eco_dims:
+            st.write(f"- **{k}**：{v}")
+
     st.write("**📋 复盘点评（重来一次你会改哪里？）**")
     tips = []
+    if not step_done(7) and (step_done(10) or step_done(11)):
+        tips.append("⚠️ 你没部署可信溯源，算法/专家收益只按 5 折兑现——第⑦步 30 万没花，白白损失几十万年收入，重来应优先部署")
+    if st.session_state.role == "数据管家" and st.session_state.get("desens_bad", False):
+        tips.append("🎯 作为数据管家，治理与合规是底线——但你漏脱敏触发罚款，重来应把客户/财务/人员/位置类字段全部脱敏")
+    if st.session_state.role == "数据产品经理" and (not step_done(10) or not step_done(11)):
+        tips.append("🎯 作为数据产品经理，变现与运营是主线——算法(+50万/年)和专家(+60万/年)是回报最高投入，重来优先购买")
+    if st.session_state.role == "首席数据官" and st.session_state.get("s12_strategy") is None:
+        tips.append("🎯 作为首席数据官，统筹全局——治理已完成，建议在「用数据」完成价值挖掘策略三选一，兑现数据价值")
+    if st.session_state.target == "降本增效" and st.session_state.budget < INIT_BUDGET - 2000000:
+        tips.append("📌 你的目标是降本增效——目前投入已超 200 万，重来应砍掉低性价比步骤（如全量标注），聚焦必要治理")
+    if st.session_state.target == "合规避险" and st.session_state.get("desens_bad", False):
+        tips.append("📌 你的目标是合规避险——却因漏脱敏触发罚款，与目标背道而驰，重来务必全字段脱敏")
+    if st.session_state.target == "价值创造" and (st.session_state.revenue - total_cost) <= 0:
+        tips.append("📌 你的目标是价值创造——当前边际收益未转正，重来应优先高回报的算法/专家投入，并处理风险事件保住收入")
     if st.session_state.get("desens_bad", False):
         tips.append("⚠️ 你在第⑥步漏脱敏了，直接导致合规罚款——重来时应把客户/财务/人员/位置类字段全部脱敏，成本一样，风险为0")
     if total_ann_val := sum(a for _, a in st.session_state.log if _.startswith("步骤8")):
