@@ -359,174 +359,161 @@ with tab2:
 # ============ Tab3：用数据 ============
 with tab3:
     st.header("第三阶：用数据（9层6-9层）")
+    st.write("**第三阶 · 知识资产化与智能调用**")
+    st.subheader("用数据：让知识被智能体调起来")
+    st.caption("知识资产建好了，最后一步是把它开放出去。算法和专家每年带来收入；六维估值随治理与调用进度动态更新。所有部署均可撤销。")
 
-    st.subheader("⑨ 建知识图谱")
-    if st.button("构建知识图谱（-30万）", key="s9", disabled=step_done(9) or not st.session_state.started):
-        if spend("步骤9-图谱", 300000):
-            st.session_state.done.add(9)
-            st.success(f"✅ 知识图谱已建（已扣30万，剩余{st.session_state.budget/10000:.0f}万）")
-
-    st.subheader("⑩ 买算法")
     trace_ok = step_done(7)
     income_mult = 1.0 if trace_ok else 0.5
-    if not trace_ok:
-        st.warning("⚠️ 未部署可信溯源：算法与专家收益按 **5 折** 兑现——可信是收益生效的前提（去「治数据」部署第⑦步）")
-    algo_income = int(500000 * income_mult)
-    expert_income = int(600000 * income_mult)
-    if st.button("采购故障预测算法（-30万）", key="s10", disabled=step_done(10) or not st.session_state.started):
-        if spend("步骤10-算法", 300000):
-            st.session_state.done.add(10)
-            st.session_state.revenue += algo_income
-            note = f"（未部署溯源按5折：+{algo_income/10000:.0f}万/年）" if income_mult < 1 else ""
-            st.success(f"✅ 算法上线，年省{algo_income/10000:.0f}万{note}（已扣30万，剩余{st.session_state.budget/10000:.0f}万）")
+    algo_base = 50   # 万元/年
+    expert_base = 60  # 万元/年
+    algo_income = int(algo_base * income_mult)
+    expert_income = int(expert_base * income_mult)
 
-    st.subheader("⑪ 请专家优化")
-    if st.button("聘请算法专家（-40万）", key="s11", disabled=step_done(11) or not st.session_state.started):
-        if spend("步骤11-专家", 400000):
-            st.session_state.done.add(11)
-            st.session_state.revenue += expert_income
-            note = f"（未部署溯源按5折：+{expert_income/10000:.0f}万/年）" if income_mult < 1 else ""
-            st.success(f"✅ 专家到位，年省再增{expert_income/10000:.0f}万{note}（已扣40万，剩余{st.session_state.budget/10000:.0f}万）")
+    if not trace_ok and (step_done(10) or step_done(11)):
+        st.warning("⚠️ **可信溯源未部署：算法/专家收益按 5 折兑现**——未部署「可信溯源」时，业务与客户不信任数据出处，算法服务与专家咨询收入减半。前往「治数据」部署后收益全额兑现。")
 
-    # 步骤12：六维估值
-    st.subheader("⑫ 六维估值 ⭐")
-
-    if "s12_phase" not in st.session_state:
-        st.session_state.s12_phase = "initial"
-    if "s12_e1" not in st.session_state:
-        st.session_state.s12_e1 = None
-    if "s12_e2" not in st.session_state:
-        st.session_state.s12_e2 = None
-    if "s12_e3" not in st.session_state:
-        st.session_state.s12_e3 = None
-    if "s12_strategy" not in st.session_state:
-        st.session_state.s12_strategy = None
-
-    if st.session_state.s12_phase == "initial":
-        total_cost = (INIT_BUDGET - st.session_state.budget)
-        marginal = st.session_state.revenue - total_cost
-        st.dataframe(pd.DataFrame({
-            "六维": ["用户资源","资源方","生态总价值","收入","成本","边际收益"],
-            "初评值": ["60","45","180",
-                      f"{st.session_state.revenue/10000:.0f}万", f"{total_cost/10000:.0f}万",
-                      f"{marginal/10000:.0f}万"],
-        }), hide_index=True)
-        st.warning(f"📉 初评边际收益{marginal/10000:.0f}万——光花钱不赚钱！")
-        if st.button("确认初评，进入调整", key="s12a"):
-            st.session_state.val_history.append(("初评", total_cost, st.session_state.revenue, marginal))
-            st.session_state.s12_phase = "adjust"
-            st.rerun()
-
-    elif st.session_state.s12_phase == "adjust":
-        if st.session_state.s12_e1 is None:
-            desens_bad = st.session_state.get("desens_bad", False)
-            desens_missed = st.session_state.get("desens_missed", [])
-            if desens_bad:
-                st.write("**🎲 风险事件1：合规罚款**")
-                st.error(f"⚠️ 监管抽查发现数据脱敏不彻底！——就是你在第⑥步漏脱敏了：{'、'.join(desens_missed) or '敏感字段'}，被监管部门抽查出来")
-                cA,cB,cC = st.columns(3)
-                with cA:
-                    if st.button("A 全面整改(-20万，罚款10万)", key="e1a"):
-                        spend("合规整改", 200000)
-                        st.session_state.revenue -= 100000
-                        st.session_state.s12_e1 = "A"
-                        st.rerun()
-                with cB:
-                    if st.button("B 硬扛申诉(0万，罚款50万)", key="e1b"):
-                        st.session_state.revenue -= 500000
-                        st.session_state.s12_e1 = "B"
-                        st.rerun()
-                with cC:
-                    if st.button("C 部分整改(-10万，罚款25万)", key="e1c"):
-                        spend("部分整改", 100000)
-                        st.session_state.revenue -= 250000
-                        st.session_state.s12_e1 = "C"
-                        st.rerun()
+    # ---------- 三张部署卡片（真实扣款、可撤销、留痕） ----------
+    offers = [
+        (9,  "🕸️", "企业知识图谱", "构建设备/项目/人员/标签的语义图谱，支撑语义检索", 30, 0, [
+            "抽取实体 1.2 万个（设备 4,800 · 项目 320 · 人员 1,600 · 标签 5,300）",
+            "构建关系边 3.5 万条，实体与文档双向关联",
+            "开放语义检索：支持「找到所有 2026 年检修过的压缩机」类查询",
+            "对接 MCP Server，供智能体跨系统取数引用"]),
+        (10, "🧠", "故障预测算法", "基于时序数据训练故障预测，每年带来算法服务收入", 30, algo_base, [
+            "故障预测模型上线，Top-1 准确率 87%，AUC 0.91",
+            "接入设备运行日志等 3 类时序数据源，分钟级增量推理",
+            "提前 2 小时预警设备故障，减少非计划停机",
+            "模型 API 开放，形成算法服务收入 +50 万/年"]),
+        (11, "🎓", "算法专家优化", "聘请行业算法专家调优模型与产线，每年带来咨询收入", 40, expert_base, [
+            "完成 3 个核心模型调优，推理时延降低 32%",
+            "建立标注 SOP 与质检规则库，标注返工率下降 40%",
+            "输出行业知识库与调优方法论，沉淀为可复用资产",
+            "对外提供专家咨询服务，形成咨询收入 +60 万/年"]),
+    ]
+    step_label = {9: "图谱", 10: "算法", 11: "专家"}
+    oc1, oc2, oc3 = st.columns(3)
+    for col, (step_key, icon, name, desc, cost, base_income, delivers) in zip([oc1, oc2, oc3], offers):
+        with col:
+            done = step_done(step_key)
+            st.markdown(f"**{icon} {name}** ｜ {'✅ 已部署' if done else '成本 -' + str(cost) + ' 万'}")
+            st.caption(desc)
+            if base_income > 0:
+                show_income = int(base_income * income_mult)
+                suffix = "（未部署溯源，5折）" if income_mult < 1 else ""
+                st.markdown(f"**+{show_income} 万/年收入**{suffix}")
+            if done:
+                st.success("部署结果 · 已上线")
+                for d in delivers:
+                    st.write(f"- ✅ {d}")
+                if st.button(f"撤销部署（退还{cost}万）", key=f"undo_{step_key}"):
+                    st.session_state.done.discard(step_key)
+                    st.session_state.budget += cost * 10000
+                    st.session_state.log = [x for x in st.session_state.log if not x[0].startswith(f"步骤{step_key}")]
+                    if step_key in (10, 11):
+                        st.session_state.revenue -= int(base_income * income_mult * 10000)
+                    st.rerun()
             else:
-                st.write("**🎲 监管抽查**")
-                st.success("✅ 监管抽查未发现合规问题——第⑥步脱敏做得很完整，罚款风险为0，直接进入下一环节")
-                st.session_state.s12_e1 = "OK"
+                if st.button(f"部署（-{cost} 万）", key=f"s{step_key}",
+                             disabled=not st.session_state.started or st.session_state.budget < cost * 10000):
+                    if spend(f"步骤{step_key}-{step_label[step_key]}", cost * 10000):
+                        st.session_state.done.add(step_key)
+                        if step_key in (10, 11):
+                            st.session_state.revenue += int(base_income * income_mult * 10000)
+                        st.rerun()
+
+    # ---------- 风险事件博弈（3 事件 × 3 选项，真实扣款+改收入，可撤销） ----------
+    st.subheader("⚡ 风险事件博弈 ⭐")
+    st.caption("三次估值迭代之间会遭遇合规抽查、对手抢数据、算法事故等风险事件。选择应对策略会真实扣减预算并影响年收入，全部留痕、可撤销。")
+    RISK_EVENTS = [
+        ("监管合规抽查",
+         "数据监管局抽查发现你的数据底座存在未脱敏字段外泄风险，要求限期整改，否则按上限罚款。",
+         [("立即补全脱敏", "紧急追加脱敏规则，当场消除风险", 20, 0),
+          ("自查后整改", "花时间自查，暴露面更大", 40, -10),
+          ("拖延应对", "不正面回应，赌抽查结束", 0, -50)]),
+        ("竞争对手抢数据",
+         "同行业对手高价挖你的标注团队，并向数据源厂商开出双倍价格抢购同源数据。",
+         [("加薪留人+签独家", "锁定标注团队与数据源独家供应", 30, 0),
+          ("换开源替代源", "改用开源数据，质量和独家性下降", 10, -20),
+          ("不设防", "任由对手抢购，数据被截胡", 0, -40)]),
+        ("AI 算法事故",
+         "已上线的预测算法在生产中误报，引发产线停摆，客户要求追责赔偿。",
+         [("紧急回滚并修复", "回滚模型、补充重训数据", 25, 0),
+          ("人工复核兜底", "暂停自动决策，转人工审核", 15, -15),
+          ("继续运行", "侥幸继续，事故扩大", 0, -60)]),
+    ]
+    if "risk_choices" not in st.session_state:
+        st.session_state.risk_choices = {}
+    resolved_cnt = len(st.session_state.risk_choices)
+    st.markdown(f"**已处理 {resolved_cnt}/{len(RISK_EVENTS)}**")
+
+    for ev_i, (title, desc, options) in enumerate(RISK_EVENTS):
+        chosen = st.session_state.risk_choices.get(ev_i)
+        badge = " ✅ 已应对" if chosen is not None else " ⏳ 待应对"
+        st.markdown(f"**{title}**{badge}")
+        st.caption(desc)
+        cols = st.columns(3)
+        for col, (label, opt_desc, cost, delta) in zip(cols, options):
+            with col:
+                if chosen is None:
+                    btn_label = f"{label}\n{opt_desc}\n支出 {cost} 万"
+                    if delta > 0:
+                        btn_label += f" · 年收入 +{delta} 万"
+                    elif delta < 0:
+                        btn_label += f" · 年收入 {delta} 万"
+                    if st.button(btn_label, key=f"risk_{ev_i}_{cost}_{delta}",
+                                 disabled=not st.session_state.started):
+                        if st.session_state.budget >= cost * 10000:
+                            spend(f"风险{ev_i+1}-{label}", cost * 10000)
+                            st.session_state.revenue += delta * 10000
+                            st.session_state.risk_choices[ev_i] = (label, cost, delta)
+                            st.rerun()
+                        else:
+                            st.error(f"❌ 预算不够！需要{cost}万")
+                else:
+                    is_chosen = chosen[0] == label
+                    if is_chosen:
+                        st.success(f"✅ 已选：{label}")
+                    else:
+                        st.markdown(f"<div style='opacity:0.55'>{label}（未选）<br/>{opt_desc}</div>", unsafe_allow_html=True)
+        if chosen is not None:
+            label, cost, delta = chosen
+            st.write(f"你的应对：「{label}」——已在操作留痕中记录，可撤销后重新选择。")
+            if st.button("撤销应对（退还预算、恢复年收入）", key=f"risk_undo_{ev_i}"):
+                st.session_state.budget += cost * 10000
+                st.session_state.revenue -= delta * 10000
+                st.session_state.log = [x for x in st.session_state.log if not x[0].startswith(f"风险{ev_i+1}-")]
+                del st.session_state.risk_choices[ev_i]
                 st.rerun()
-        elif st.session_state.s12_e2 is None:
-            st.success(f"✅ 合规事件已处理")
-            st.write("**🎲 风险事件2：竞争对手抢数据**")
-            st.error("⚠️ 竞争对手挖角数据分析师！")
-            cA,cB,cC = st.columns(3)
-            with cA:
-                if st.button("A 法律维权(-15万，追回数据)", key="e2a"):
-                    spend("法律维权", 150000)
-                    st.session_state.s12_e2 = "A"
-                    st.rerun()
-            with cB:
-                if st.button("B 技术加固(-20万，阻止泄露)", key="e2b"):
-                    spend("技术加固", 200000)
-                    st.session_state.s12_e2 = "B"
-                    st.rerun()
-            with cC:
-                if st.button("C 被动接受(0万，用户流失)", key="e2c"):
-                    st.session_state.revenue -= 100000
-                    st.session_state.s12_e2 = "C"
-                    st.rerun()
-        elif st.session_state.s12_e3 is None:
-            st.success("✅ 两个风险事件已处理")
-            st.write("**🎲 风险事件3：AI 算法事故**")
-            st.error("⚠️ 已上线的预测算法在生产中误报，引发产线停摆，客户要求追责赔偿！")
-            cA,cB,cC = st.columns(3)
-            with cA:
-                if st.button("A 紧急回滚并修复(-25万，收入不变)", key="e3a"):
-                    spend("AI事故-回滚修复", 250000)
-                    st.session_state.s12_e3 = "A"
-                    st.rerun()
-            with cB:
-                if st.button("B 人工复核兜底(-15万，收入-15万)", key="e3b"):
-                    spend("AI事故-人工兜底", 150000)
-                    st.session_state.revenue -= 150000
-                    st.session_state.s12_e3 = "B"
-                    st.rerun()
-            with cC:
-                if st.button("C 继续运行(0万，收入-60万)", key="e3c"):
-                    st.session_state.revenue -= 600000
-                    st.session_state.s12_e3 = "C"
-                    st.rerun()
-        else:
-            st.success(f"✅ 三个风险事件已处理")
-            st.write("**📈 价值挖掘策略三选一**（点击下方按钮选择你的变现策略）")
-            cA,cB,cC = st.columns(3)
-            with cA:
-                if st.button("拓展场景服务(-20万，收入+45万)", key="str1", type="primary"):
-                    spend("场景服务", 200000)
-                    st.session_state.revenue += 450000
-                    st.session_state.s12_strategy = "场景服务"
-                    st.session_state.s12_phase = "final"
-                    st.rerun()
-            with cB:
-                if st.button("优化算法变现(-15万，收入+35万)", key="str2", type="primary"):
-                    spend("算法优化", 150000)
-                    st.session_state.revenue += 350000
-                    st.session_state.s12_strategy = "算法优化"
-                    st.session_state.s12_phase = "final"
-                    st.rerun()
-            with cC:
-                if st.button("生态伙伴共建(-25万，收入+40万)", key="str3", type="primary"):
-                    spend("生态共建", 250000)
-                    st.session_state.revenue += 400000
-                    st.session_state.s12_strategy = "生态共建"
-                    st.session_state.s12_phase = "final"
-                    st.rerun()
 
-    elif st.session_state.s12_phase == "final":
-        st.success("✅ 估值完成")
-        total_cost = (INIT_BUDGET - st.session_state.budget)
-        marginal = st.session_state.revenue - total_cost
-        st.session_state.val_history.append(("终评", total_cost, st.session_state.revenue, marginal))
-        st.session_state.done.add(12)
+    risk_income = sum(d for _, _, d in st.session_state.risk_choices.values())
+    st.markdown(f"**风险事件累计年收入影响**：{'+' if risk_income >= 0 else ''}{risk_income} 万/年")
 
-        cmp_df = pd.DataFrame(st.session_state.val_history, columns=["阶段","成本(万)","收入(万)","边际收益(万)"])
-        cmp_df["成本(万)"] = cmp_df["成本(万)"]/10000
-        cmp_df["收入(万)"] = cmp_df["收入(万)"]/10000
-        cmp_df["边际收益(万)"] = cmp_df["边际收益(万)"]/10000
-        st.dataframe(cmp_df, hide_index=True)
-        st.metric("最终边际收益", f"{marginal/10000:.0f} 万")
+    # ---------- 六维估值（治理六维，实时计算） ----------
+    st.subheader("📊 六维估值 ⭐")
+    purchased_cnt = sum(1 for s in (1, 2, 3) if step_done(s)) * 2
+    cleaned = step_done(5)
+    masked = step_done(6)
+    traced = step_done(7)
+    labeled = step_done(8)
+    dims = [
+        ("可用性", "数据集规模与字段完整，可被消费", 30 + purchased_cnt * 10),
+        ("可信性", "来源可溯、质量可度量、有验收", (40 if traced else 10) + (20 if labeled else 0) + (20 if cleaned else 0)),
+        ("完整性", "口径统一，字段与标签可解释", (40 if cleaned else 10) + (20 if masked else 0)),
+        ("可追溯性", "版本、血缘、台账齐全，可回滚", 85 if traced else 15),
+        ("标准化", "统一编码与主数据，消除同质异码", 80 if cleaned else 20),
+        ("合规性", "脱敏、分级、权限与审计留痕", 85 if masked else 20),
+    ]
+    total_score = round(sum(s for _, _, s in dims) / 6)
+    st.markdown(f"**数据资产综合评分：{total_score}**（六维平均，随管/治/用进度实时变化）")
+    for name, desc, score in dims:
+        st.progress(min(score, 100) / 100, text=f"{name}（{desc}）— {score}")
+    st.info("口径说明：本实验的六维为「治理六维」——衡量数据资产的质量与合规水平；与海尔「共赢增值表」的生态六维（用户资源/资源方/生态总价值/收入/成本/边际收益）是两套不同口径，前者管质量、后者管生态增值，报告页两者都会呈现。")
+
+    # ---------- 底部预算与生效年收入 ----------
+    effective_income = (algo_income if step_done(10) else 0) + (expert_income if step_done(11) else 0) + risk_income
+    st.info(f"当前预算 {st.session_state.budget/10000:.0f} 万 ｜ 生效年收入约 {effective_income} 万/年（含风险影响与溯源折扣）；不想要的部署可随时撤销。")
+
 
 # ============ Tab4：能力画像 ============
 with tab4:
@@ -550,27 +537,13 @@ with tab4:
     if step_done(11):
         expert_amt = int(60 * mult)
         rev_items.append((f"聘请算法专家优化{'（未部署溯源按5折）' if mult < 1 else ''}", f"+{expert_amt}万/年"))
-    strat = st.session_state.get("s12_strategy")
-    if strat == "场景服务":
-        rev_items.append(("拓展场景服务", "+45万"))
-    elif strat == "算法优化":
-        rev_items.append(("优化算法变现", "+35万"))
-    elif strat == "生态共建":
-        rev_items.append(("生态伙伴共建", "+40万"))
-    e1 = st.session_state.get("s12_e1")
-    if e1 == "A":
-        rev_items.append(("合规整改罚款", "-10万"))
-    elif e1 == "B":
-        rev_items.append(("合规硬扛罚款", "-50万"))
-    elif e1 == "C":
-        rev_items.append(("合规部分整改罚款", "-25万"))
-    if st.session_state.get("s12_e2") == "C":
-        rev_items.append(("被动接受致用户流失", "-10万"))
-    e3 = st.session_state.get("s12_e3")
-    if e3 == "B":
-        rev_items.append(("AI事故-人工兜底减收", "-15万"))
-    elif e3 == "C":
-        rev_items.append(("AI事故-继续运行减收", "-60万"))
+    risk_choices = st.session_state.get("risk_choices", {})
+    risk_titles = ["监管合规抽查", "竞争对手抢数据", "AI 算法事故"]
+    for ev_i in sorted(risk_choices):
+        label, _cost, delta = risk_choices[ev_i]
+        if delta != 0:
+            sign = "+" if delta > 0 else ""
+            rev_items.append((f"风险应对-{risk_titles[ev_i]}（{label}）", f"{sign}{delta}万"))
     if rev_items:
         for k, v in rev_items:
             st.write(f"- {k}: {v}")
@@ -613,7 +586,7 @@ with tab4:
         tips.append("🎯 作为数据管家，治理与合规是底线——但你漏脱敏触发罚款，重来应把客户/财务/人员/位置类字段全部脱敏")
     if st.session_state.role == "数据产品经理" and (not step_done(10) or not step_done(11)):
         tips.append("🎯 作为数据产品经理，变现与运营是主线——算法(+50万/年)和专家(+60万/年)是回报最高投入，重来优先购买")
-    if st.session_state.role == "首席数据官" and st.session_state.get("s12_strategy") is None:
+    if st.session_state.role == "首席数据官" and len(st.session_state.get("risk_choices", {})) < 3:
         tips.append("🎯 作为首席数据官，统筹全局——治理已完成，建议在「用数据」完成价值挖掘策略三选一，兑现数据价值")
     if st.session_state.target == "降本增效" and st.session_state.budget < INIT_BUDGET - 2000000:
         tips.append("📌 你的目标是降本增效——目前投入已超 200 万，重来应砍掉低性价比步骤（如全量标注），聚焦必要治理")
