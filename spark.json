@@ -1,0 +1,25 @@
+{
+  "app": {
+    "id": "app_17ga8d76hdr",
+    "online_url": "https://4m6h0tc4638p9.doubao.link/app/app_17ga8d76hdr"
+  },
+  "build": {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "output": "dist/output",
+    "output_cdn": "dist/output_resource"
+  },
+  "dev": {
+    "command": [
+      "npm",
+      "run",
+      "dev"
+    ],
+    "port": 32145
+  },
+  "stack": "react-standard-webapp",
+  "version": "0.1.3"
+}
