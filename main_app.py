@@ -21,6 +21,13 @@ import pandas as pd
 from datetime import datetime
 
 # ========== 页面配置 ==========
+import textwrap
+
+def md_html(s):
+    """逐行去掉前导缩进后以 HTML 渲染（避免 Markdown 把缩进行当代码块显示原文）"""
+    lines = [ln.strip() for ln in s.splitlines()]
+    return st.markdown("\n".join(lines), unsafe_allow_html=True)
+
 st.set_page_config(
     page_title="数据资产运营总监——全生命周期经营决策虚拟仿真实验",
     page_icon="🎯",
@@ -124,12 +131,12 @@ INCENTIVES = [
 
 # ========== 24 步流程定义（6 篇章 × 4 步） ==========
 PHASES = [
-    {"name": "投入篇", "steps": [1, 2, 3, 4]},
-    {"name": "采集篇", "steps": [5, 6, 7, 8]},
-    {"name": "治理篇", "steps": [9, 10, 11, 12]},
-    {"name": "赋能篇", "steps": [13, 14, 15, 16]},
-    {"name": "变现篇", "steps": [17, 18, 19, 20]},
-    {"name": "经营与估值篇", "steps": [21, 22, 23, 24]},
+    {"name": "投入篇", "steps": [1, 2, 3, 4], "aim": "定好团队与预算——开局底子"},
+    {"name": "采集篇", "steps": [5, 6, 7, 8], "aim": "拿到数据并安全存好——原料入仓"},
+    {"name": "治理篇", "steps": [9, 10, 11, 12], "aim": "清洗/脱敏/上架——提升 Q、守住 C"},
+    {"name": "赋能篇", "steps": [13, 14, 15, 16], "aim": "建模并推广场景——让数据有用"},
+    {"name": "变现篇", "steps": [17, 18, 19, 20], "aim": "产品化与签约——把数据卖成钱"},
+    {"name": "经营与估值篇", "steps": [21, 22, 23, 24], "aim": "激励团队、披露估值——算总账"},
 ]
 STEP_NAMES = {
     1: "组建团队定岗", 2: "盘点家底", 3: "制定三年战略", 4: "编制预算",
@@ -498,39 +505,124 @@ def render_sidebar():
         else:
             st.caption("选择行业与角色后开始实验")
 
-# ========== Tab0：实验导览 ==========
+# ========== Tab0：实验导览（实验说明书式） ==========
 def render_tab0():
-    st.markdown("""
+    md_html("""
     <div style="background:linear-gradient(135deg,#0F2B46,#1E88E5 55%,#64B5F6);padding:26px 30px;border-radius:14px;color:#fff">
     <h1 style="margin:0;color:#fff">🎯 数据资产运营总监</h1>
     <p style="margin:6px 0 0;font-size:16px;color:#E3F2FD">数据资产全生命周期经营决策虚拟仿真实验 · 8学时（课前1+课中6+课后1）</p>
     </div>
-    """, unsafe_allow_html=True)
+    """)
     st.markdown("")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown("#### 🧭 一句话定位")
-        st.markdown("在**试错中建立数据资产价值判断**——治理了数据却亏了钱，这一真实经营挫败感是本实验最核心的教学设计。")
-    with c2:
-        st.markdown("#### ⚖️ 估值引擎（全公开）")
-        st.latex(r"V = \Sigma\left(\frac{现金流}{1.1^t}\right) \times Q \times C - H - D")
-        st.markdown("Q 质量系数（乘积）｜C 合规系数（可归零）｜H 持有成本｜D 减值准备")
-    with c3:
-        st.markdown("#### 🔄 三轮估值节奏")
-        st.markdown("**第一轮** 普遍上涨（尝甜头）→ **第二轮** 事件卡集体回调（制造挫败）→ **第三轮** 分化（事前准备决定抗风险）")
 
+    # 实验地图：6篇章24步流程条
+    st.markdown("### 🗺️ 实验地图：24 步决策全流程（从上到下依次完成）")
+    flow_html = """
+    <div style="display:flex;gap:10px;flex-wrap:nowrap;overflow-x:auto;padding:6px 0">
+    {phases}
+    </div>
+    <div style="margin-top:8px;font-size:13px;color:#37474F;background:#ECEFF1;border-radius:10px;padding:10px 14px">
+    💡 <b>逻辑主线</b>：先把「数据当资产」的<b>底子</b>打好（投入→采集→治理），再把「资产变钱」的<b>变现</b>跑通（赋能→变现→经营估值）。前 12 步决定 Q/C/H 的底子，后 12 步决定现金流的来源——两边都做好，V 才会高。
+    </div>
+    """
+    phase_blocks = []
+    for ph in PHASES:
+        step_marks = " · ".join(f"{s}" for s in ph["steps"])
+        phase_blocks.append(f"""
+        <div style="flex:1;min-width:150px;background:#F5F9FF;border:1px solid #BBDEFB;border-radius:12px;padding:12px">
+        <div style="font-weight:700;color:#0D47A1;font-size:15px">{ph['name']}</div>
+        <div style="font-size:12px;color:#1565C0;margin-top:4px">步骤 {ph['steps'][0]}-{ph['steps'][-1]}</div>
+        <div style="font-size:12px;color:#455A64;margin-top:6px">{ph['aim']}</div>
+        </div>
+        """)
+    md_html(flow_html.format(phases="".join(phase_blocks)))
+    st.markdown("")
+
+    # 估值公式拆解（彩色块）
+    st.markdown("### ⚖️ 估值引擎拆解（每个字母都能看懂）")
+    formula_html = """
+    <div style="display:flex;gap:8px;align-items:stretch;flex-wrap:wrap;padding:10px 0">
+      <div style="flex:2;min-width:220px;background:#E8F5E9;border:2px solid #43A047;border-radius:12px;padding:12px">
+        <div style="font-size:12px;color:#2E7D32">① 现金流折现</div>
+        <div style="font-size:20px;font-weight:800;color:#1B5E20;font-family:monospace">Σ(现金流 ÷ 1.1ᵗ)</div>
+        <div style="font-size:12px;color:#388E3C">每个变现场景未来能赚多少钱，折算回今天</div>
+      </div>
+      <div style="flex:1;min-width:110px;background:#E3F2FD;border:2px solid #1E88E5;border-radius:12px;padding:12px">
+        <div style="font-size:12px;color:#1565C0">② Q 质量系数</div>
+        <div style="font-size:20px;font-weight:800;color:#0D47A1;font-family:monospace">× Q</div>
+        <div style="font-size:12px;color:#1976D2">数据干不干净：完整×一致×时效×准确</div>
+      </div>
+      <div style="flex:1;min-width:110px;background:#F3E5F5;border:2px solid #8E24AA;border-radius:12px;padding:12px">
+        <div style="font-size:12px;color:#6A1B9A">③ C 合规系数</div>
+        <div style="font-size:20px;font-weight:800;color:#4A148C;font-family:monospace">× C</div>
+        <div style="font-size:12px;color:#7B1FA2">合不合规：违规可归零、罚没对外收入</div>
+      </div>
+      <div style="flex:1;min-width:110px;background:#FFF3E0;border:2px solid #FB8C00;border-radius:12px;padding:12px">
+        <div style="font-size:12px;color:#E65100">④ H 持有成本</div>
+        <div style="font-size:20px;font-weight:800;color:#EF6C00;font-family:monospace">− H</div>
+        <div style="font-size:12px;color:#F57C00">存数据要花钱：存储+算力（每轮独立）</div>
+      </div>
+      <div style="flex:1;min-width:110px;background:#FFEBEE;border:2px solid #E53935;border-radius:12px;padding:12px">
+        <div style="font-size:12px;color:#C62828">⑤ D 减值准备</div>
+        <div style="font-size:20px;font-weight:800;color:#B71C1C;font-family:monospace">− D</div>
+        <div style="font-size:12px;color:#D32F2F">风险事件计提：最多扣 30%</div>
+      </div>
+      <div style="flex:0.6;min-width:90px;background:#263238;border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-size:12px;color:#90A4AE">= 资产净值</div>
+        <div style="font-size:20px;font-weight:800;color:#FFF;font-family:monospace">V</div>
+        <div style="font-size:12px;color:#B0BEC5">正 = 赚，负 = 亏</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:#37474F;background:#F5F5F5;border-radius:10px;padding:8px 14px;margin-top:4px">
+    📌 <b>记忆口诀</b>：先看<b>能赚多少</b>（①），再看<b>数据好不好</b>（②③打折），最后扣掉<b>养数据的钱</b>（④）和<b>踩坑的损失</b>（⑤）。
+    </div>
+    """
+    md_html(formula_html)
+    st.markdown("")
+
+    # 三轮节奏时间轴
+    st.markdown("### 🔄 三轮节奏（为什么做三轮？）")
+    timeline_html = """
+    <div style="display:flex;gap:10px;align-items:stretch;padding:6px 0">
+      <div style="flex:1;background:#E8F5E9;border-top:5px solid #43A047;border-radius:0 0 12px 12px;padding:12px">
+        <div style="font-weight:800;color:#1B5E20">第 1 轮 · 普遍上涨</div>
+        <div style="font-size:13px;color:#388E3C;margin-top:6px">基础治理就见效，估值上涨——<b>先尝到甜头</b>，建立信心</div>
+      </div>
+      <div style="align-self:center;font-size:22px;color:#90A4AE">➜</div>
+      <div style="flex:1;background:#FFF3E0;border-top:5px solid #FB8C00;border-radius:0 0 12px 12px;padding:12px">
+        <div style="font-weight:800;color:#E65100">第 2 轮 · 事件卡回调</div>
+        <div style="font-size:13px;color:#F57C00;margin-top:6px">政策/竞争/技术事件集体打压估值——<b>制造挫败感</b>，暴露认知误区</div>
+      </div>
+      <div style="align-self:center;font-size:22px;color:#90A4AE">➜</div>
+      <div style="flex:1;background:#E3F2FD;border-top:5px solid #1E88E5;border-radius:0 0 12px 12px;padding:12px">
+        <div style="font-weight:800;color:#0D47A1">第 3 轮 · 分化</div>
+        <div style="font-size:13px;color:#1976D2;margin-top:6px">事前准备充分的组抗住风险、估值回升——<b>事前准备决定抗风险能力</b></div>
+      </div>
+    </div>
+    """
+    md_html(timeline_html)
     st.divider()
+
     if not st.session_state.started:
+        st.markdown("### 🎮 开局设置（先选行业，再选角色）")
+        # 四行业对比卡
+        ind_rows = []
+        for k, ind in INDUSTRIES.items():
+            ind_rows.append({
+                "行业": f"{k}·{ind['name']}",
+                "Q 初始": ind["q0"], "C 天花板": ind["c_cap"], "H 基准(万/轮)": ind["h_base"],
+                "单位存储(万/TB)": ind["unit_storage"], "难度": "较难" if ind["h_base"] >= 15 else "适中",
+                "典型陷阱": ind["trap"],
+            })
+        st.dataframe(pd.DataFrame(ind_rows), use_container_width=True, hide_index=True)
+        st.caption("👉 表中数值越小越省心；医疗健康行业 C 天花板最低（0.5），对合规要求最苛刻——想挑战选它。")
         c1, c2 = st.columns(2)
         with c1:
             role = st.selectbox("**选择你的角色**", ["数据运营总监", "数据分析员", "算法工程师", "首席数据官"], index=0)
             st.session_state.role = role
         with c2:
-            ind_key = st.selectbox("**选择案例行业**（行业差异：Q初始/C天花板/H基准/变现逻辑）", list(INDUSTRIES.keys()), index=0)
+            ind_key = st.selectbox("**选择案例行业**", list(INDUSTRIES.keys()), index=0)
             ind = INDUSTRIES[ind_key]
-            st.markdown(f"- Q 初始 **{ind['q0']}** ｜ C 天花板 **{ind['c_cap']}** ｜ H 基准 **{ind['h_base']}万/轮**")
-            st.markdown(f"- 单位存储 **{ind['unit_storage']}万/TB** ｜ 持有成本档位：{ind['h_level']}")
-            st.markdown(f"- 典型陷阱：**{ind['trap']}**")
         st.warning("⚠️ 行业差异教学建议：制造专业易选制造、信管易选零售——竞赛建议强制抽签或按专业混编，跳出舒适区。")
         if st.button("🚀 开始实验（领取每轮250万预算）", type="primary"):
             st.session_state.industry = ind_key
@@ -540,7 +632,9 @@ def render_tab0():
             record("开始实验", f"行业={ind_key}，角色={role}")
             st.rerun()
     else:
-        st.success(f"**实验进行中**：行业={st.session_state.industry}，角色={st.session_state.role}，当前第 {st.session_state.round} 轮")
+        ind = INDUSTRIES[st.session_state.industry]
+        st.success(f"**实验进行中**：行业={st.session_state.industry}·{ind['name']}，角色={st.session_state.role}，当前第 {st.session_state.round} 轮")
+        st.markdown(f"**你的行业基线**：Q 初始 {ind['q0']} ｜ C 天花板 {ind['c_cap']} ｜ H 基准 {ind['h_base']}万/轮 ｜ 单位存储 {ind['unit_storage']}万/TB ｜ 典型陷阱：{ind['trap']}")
         st.markdown("**24 步决策流程**：投入篇(1-4) → 采集篇(5-8) → 治理篇(9-12) → 赋能篇(13-16) → 变现篇(17-20) → 经营与估值篇(21-24)")
         if st.button("🔄 重置实验"):
             for k in list(st.session_state.keys()):
@@ -571,6 +665,13 @@ def render_tab1():
         with cols[i]:
             st.markdown(f"**{ph['name']}** {'⭐' if ph is cur_phase else ''}")
             st.progress(done_n / 4, text=f"{done_n}/4")
+    # 当前步骤引导条
+    stp = st.session_state.step
+    if stp <= 24:
+        prev_part = f"<span style='color:#43A047;font-weight:600'>← {STEP_NAMES[stp-1]} ✅</span>" if stp > 1 and (stp-1) in st.session_state.done else ("<span style='color:#B0BEC5'>← 起点</span>" if stp == 1 else f"<span style='color:#90A4AE'>← {STEP_NAMES[stp-1]}</span>")
+        cur_part = f"<span style='background:#1E88E5;color:#fff;border-radius:8px;padding:2px 10px;font-weight:800'>📍 第{stp}步 · {STEP_NAMES[stp]}</span>"
+        nxt_part = f"<span style='color:#90A4AE'>→ {STEP_NAMES[stp+1]}</span>" if stp < 24 else ""
+        st.markdown(f"<div style='background:#F5F9FF;border:1px solid #BBDEFB;border-radius:10px;padding:8px 14px;font-size:14px'>{prev_part}　{cur_part}　{nxt_part}</div>", unsafe_allow_html=True)
     st.markdown("")
     step = st.session_state.step
     if step >= 24 and 24 in st.session_state.done:
@@ -872,49 +973,75 @@ def render_tab2():
     if st.session_state.val_history:
         df = pd.DataFrame(st.session_state.val_history)[["round", "v", "q", "c", "h", "d"]]
         df = df.rename(columns={"round": "轮次", "v": "V净值(万)", "q": "Q", "c": "C", "h": "H", "d": "D"})
+        st.markdown("#### 📈 三轮净值走势（一眼看懂涨跌）")
         c1, c2 = st.columns([3, 2])
         with c1:
-            st.bar_chart(df.set_index("轮次")[["V净值(万)"]])
-            st.caption("V 净值随轮次变化（第一轮涨 → 第二轮事件卡回调 → 第三轮分化）")
+            st.line_chart(df.set_index("轮次")[["V净值(万)"]], height=260)
+            st.caption("绿涨红跌：第一轮普遍上涨 → 第二轮事件卡回调 → 第三轮分化。")
         with c2:
             st.markdown("**三轮估值明细**")
             st.dataframe(df, use_container_width=True, hide_index=True)
+        # 四系数每轮变化
+        st.markdown("#### 🔍 影响估值的四个系数（Q/C/H/D 每轮变化）")
+        c1, c2 = st.columns([3, 2])
+        with c1:
+            qc_df = df.set_index("轮次")[["Q", "C"]].copy()
+            qc_df["H"] = df.set_index("轮次")["H"]
+            qc_df["D"] = df.set_index("轮次")["D"]
+            st.bar_chart(qc_df, height=260)
+            st.caption("Q 质量 / C 合规 / H 持有成本 / D 减值——看哪一项拖了 V 的后腿。")
+        with c2:
+            # 每轮 V 的构成解读（自动生成一句话）
+            for _, row in df.iterrows():
+                verdict = "✅ 正资产" if row["V净值(万)"] > 0 else "⚠️ 负资产"
+                st.markdown(f"**第{int(row['轮次'])}轮**：V={row['V净值(万)']:.1f}万（{verdict}）　Q={row['Q']:.2f}｜C={row['C']:.2f}｜H={row['H']:.1f}｜D={row['D']:.1f}")
+            st.caption("同一组 Q 下，C 归零（合规出事）或 D 计提（事件损失）会直接把 V 打下去。")
         # 公式公开总表
-        with st.expander("📐 主公式与口径说明（红线：公式必须对学生公开）", expanded=True):
+        with st.expander("📐 主公式与口径说明（红线：公式必须对学生公开）", expanded=False):
             st.latex(r"V = \Sigma\left(\frac{现金流_i}{1.1^t}\right) \times Q \times C - H - D")
             st.markdown("""
-            - **Q** = 完整性 × 一致性 × 时效性 × 准确性（乘积，行业初始值起步，治理投入提升至上限 1.0）
-            - **C** = 合规系数：1.0 完全合规 / 0.7 基本合规 / 0.5 合规风险 / 0.3 违规 / 0 严重违规（C=0 罚没对外收入）；受行业天花板约束
-            - **H** = H_基准 + 采集量增量 × 单位存储成本（每轮独立，不累计）
-            - **D** = min(事件比例, 30%)（一次性计提，V 不低于 0）
-            - t = 当前轮次（第一轮 t=1）
+- **Q** = 完整性 × 一致性 × 时效性 × 准确性（乘积，行业初始值起步，治理投入提升至上限 1.0）
+- **C** = 合规系数：1.0 完全合规 / 0.7 基本合规 / 0.5 合规风险 / 0.3 违规 / 0 严重违规（C=0 罚没对外收入）；受行业天花板约束
+- **H** = H_基准 + 采集量增量 × 单位存储成本（每轮独立，不累计）
+- **D** = min(事件比例, 30%)（一次性计提，V 不低于 0）
+- t = 当前轮次（第一轮 t=1）
             """)
     # 五条下跌路径状态
     st.divider()
     st.markdown("### 🕳️ 五条下跌路径（红线2：资产值必须有涨有跌）")
-    cols = st.columns(5)
-    for i, (k, p) in enumerate(DROP_PATHS.items()):
-        with cols[i]:
-            st.markdown(f"**{p['label']}**")
-            st.caption(p["desc"])
+    drop_html = """
+    <div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 0">
+    {cards}
+    </div>
+    """
+    drop_cards = []
+    for k, p in DROP_PATHS.items():
+        drop_cards.append(f"""
+        <div style="flex:1;min-width:150px;background:#FFF8F0;border:1px solid #FFCC80;border-radius:10px;padding:10px">
+        <div style="font-weight:700;color:#BF360C;font-size:13px">{p['label']}</div>
+        <div style="font-size:12px;color:#6D4C41;margin-top:4px">{p['desc']}</div>
+        </div>
+        """)
+    md_html(drop_html.format(cards="".join(drop_cards)))
     # 事件卡库
     st.divider()
     st.markdown("### 🎴 事件卡库（20 张，P-政策 / W-价格战 / C-客户流失 / T-技术替代）")
     cols = st.columns(4)
-    cats = {"P-": "政策类", "W-": "价格战类", "C-": "客户流失类", "T-": "技术替代类"}
+    cats = {"P-": "📜 政策类", "W-": "⚔️ 价格战类", "C-": "👥 客户流失类", "T-": "🤖 技术替代类"}
     for ci, (pre, cname) in enumerate(cats.items()):
         with cols[ci]:
             st.markdown(f"**{cname}**")
             for code in [f"{pre}{i:02d}" for i in range(1, 6)]:
                 card = EVENT_CARDS[code]
-                st.markdown(f"`{code}` {card['name']}\n\n<small>{card['desc']}</small>", unsafe_allow_html=True)
+                st.markdown(f"`{code}` **{card['name']}**\n\n<small>{card['desc']}</small>", unsafe_allow_html=True)
     # 已投放
     st.divider()
-    st.markdown("**本轮已投放事件卡**：")
+    st.markdown("**📌 已投放事件卡**：")
     for rnd in [1, 2, 3]:
         evs = st.session_state.events_used.get(rnd, [])
         if evs:
-            st.markdown(f"- 第{rnd}轮：{'；'.join(f'{e}·{EVENT_CARDS[e]["name"]}' for e in evs)}")
+            ev_html = "　".join(f"<span style='background:#FFF3E0;border:1px solid #FFB74D;border-radius:8px;padding:2px 8px;font-size:13px'>{e}·{EVENT_CARDS[e]['name']}</span>" for e in evs)
+            st.markdown(f"- **第{rnd}轮**：{ev_html}", unsafe_allow_html=True)
 
 # ========== Tab3：团队与激励 ==========
 def render_tab3():
@@ -928,6 +1055,8 @@ def render_tab3():
     with c1: st.metric("能力值 Capability", t["cap"])
     with c2: st.metric("意愿值 Motivation", t["mot"])
     with c3: st.metric("稳定值 Retention", t["ret"])
+    st.bar_chart(pd.DataFrame({"维度": ["能力", "意愿", "稳定"], "数值": [t["cap"], t["mot"], t["ret"]]}).set_index("维度"), height=220)
+    st.caption("三根柱越高，团队越健康；低于 60 会拖累对应环节表现。")
     st.progress(t["cap"] / 100, text="能力（决定治理效率与 Q）")
     st.progress(t["mot"] / 100, text="意愿（决定加班效率与离职概率）")
     st.progress(t["ret"] / 100, text="稳定（决定知识沉淀，低→人员流失带走隐性知识，H 上升）")
@@ -972,6 +1101,32 @@ def render_tab4():
     # 状态机
     st.markdown("#### 🔄 本轮状态机（结算后只读）")
     state = "已结算" if locked(r) else "开放提交"
+    if locked(r):
+        cur = 3
+    elif r in st.session_state.closed_round:
+        cur = 2
+    else:
+        cur = 1
+    state_html = """
+    <div style="display:flex;gap:10px;align-items:center;padding:4px 0">
+      {nodes}
+    </div>
+    """
+    states = [("① 开放提交", "学生逐步入表决策"), ("② 关闭提交", "等待结算估值"), ("③ 已结算·只读", "数据锁定，可开下一轮")]
+    nodes = []
+    for i, (name, desc) in enumerate(states, start=1):
+        active = (i == cur)
+        done = (i < cur)
+        color = "#43A047" if done else ("#1E88E5" if active else "#B0BEC5")
+        bg = "#E8F5E9" if done else ("#E3F2FD" if active else "#ECEFF1")
+        nodes.append(f"""
+        <div style="flex:1;background:{bg};border:2px solid {color};border-radius:12px;padding:10px;text-align:center">
+        <div style="font-weight:800;color:{'#1B5E20' if done else ('#0D47A1' if active else '#546E7A')}">{name}{' ✅' if done else ''}</div>
+        <div style="font-size:12px;color:#546E7A;margin-top:4px">{desc}</div>
+        </div>""")
+        if i < 3:
+            nodes.append('<div style="font-size:20px;color:#90A4AE">➜</div>')
+    md_html(state_html.format(nodes="".join(nodes)))
     st.markdown(f"当前状态：**{state}**")
     if not locked(r):
         if st.button("🔒 关闭提交（表单只读，等待结算）"):
@@ -1063,7 +1218,21 @@ def render_tab5():
         with c4: st.metric("团队健康度", f"{e['team']}/100", delta="权重15%")
         with c5: st.metric("战略一致性", f"{e['strategy']}/100", delta="权重10%")
         with c6: st.metric("复盘深度", f"{e['reflection']}/100", delta="权重10%")
-        st.metric("综合得分", f"{e['total']}分")
+        st.markdown(f"#### 综合得分：**{e['total']}分** / 100")
+        st.progress(min(e["total"] / 100, 1.0))
+        st.markdown("#### 📊 六维雷达对比（哪项强、哪项拖后腿，一目了然）")
+        six_df = pd.DataFrame({
+            "维度": ["资产净值V", "资产质量Q×C", "入表合规性", "团队健康度", "战略一致性", "复盘深度"],
+            "得分": [e["V"], e["QC"], e["listing"], e["team"], e["strategy"], e["reflection"]],
+            "权重": [30, 20, 15, 15, 10, 10],
+        })
+        cA, cB = st.columns([2, 1])
+        with cA:
+            st.bar_chart(six_df.set_index("维度")[["得分"]], height=240)
+        with cB:
+            st.markdown("**权重说明**")
+            for _, row in six_df.iterrows():
+                st.markdown(f"- {row['维度']}：权重 {row['权重']}%")
         if st.session_state.awards:
             st.success("**增值评价·特别奖：**" + "；".join(st.session_state.awards))
     st.divider()
