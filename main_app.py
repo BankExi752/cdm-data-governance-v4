@@ -41,46 +41,46 @@ INIT_BUDGET = 3500000  # 每轮 350 万（v2.0 校准：含赋能45万/年薪计
 INDUSTRIES = {
     "制造": {
         "name": "高端制造",
-        "q0": 0.75, "c_cap": 0.9, "h_base": 15.0, "unit_storage": 2.0,
+        "q0": 0.75, "c_cap": 0.9, "h_base": 15.0, "unit_storage": 1.5,
         "h_level": "高（存储+算力）", "trap": "采了大量振动数据却无故障样本",
         "base_tb": 12, "color": "#1E88E5",
         "scenes": {
-            "良率提升": {"kind": "in", "base": 105, "desc": "用设备时序数据提升产线良率"},
-            "预测性维护": {"kind": "in", "base": 90, "desc": "故障预测减少非计划停机"},
-            "数字孪生服务": {"kind": "out", "base": 75, "desc": "设备数字孪生对外数据服务"},
+            "良率提升": {"kind": "in", "base": 180, "desc": "用设备时序数据提升产线良率"},
+            "预测性维护": {"kind": "in", "base": 150, "desc": "故障预测减少非计划停机"},
+            "数字孪生服务": {"kind": "out", "base": 130, "desc": "设备数字孪生对外数据服务"},
         },
     },
     "零售": {
         "name": "零售流通",
-        "q0": 0.70, "c_cap": 0.7, "h_base": 10.0, "unit_storage": 1.5,
+        "q0": 0.70, "c_cap": 0.7, "h_base": 10.0, "unit_storage": 1.2,
         "h_level": "中", "trap": "买了流量却做不出复购模型",
         "base_tb": 8, "color": "#7C4DFF",
         "scenes": {
-            "精准营销": {"kind": "out", "base": 120, "desc": "用户标签体系支撑精准营销"},
-            "复购模型": {"kind": "in", "base": 90, "desc": "复购预测提升客户生命周期价值"},
-            "数据产品授权": {"kind": "out", "base": 90, "desc": "脱敏画像数据集对外授权"},
+            "精准营销": {"kind": "out", "base": 220, "desc": "用户标签体系支撑精准营销"},
+            "复购模型": {"kind": "in", "base": 180, "desc": "复购预测提升客户生命周期价值"},
+            "数据产品授权": {"kind": "out", "base": 160, "desc": "脱敏画像数据集对外授权"},
         },
     },
     "医疗": {
         "name": "智慧医疗",
-        "q0": 0.65, "c_cap": 0.5, "h_base": 12.0, "unit_storage": 3.0,
+        "q0": 0.65, "c_cap": 0.5, "h_base": 12.0, "unit_storage": 2.0,
         "h_level": "中高（安全等级要求）", "trap": "拿了数据永远过不了伦理审查",
         "base_tb": 5, "color": "#00A86B",
         "scenes": {
-            "临床质控": {"kind": "in", "base": 90, "desc": "病历数据支撑院内质控"},
-            "辅助诊断模型": {"kind": "out", "base": 105, "desc": "影像辅助诊断对外服务"},
-            "科研数据集": {"kind": "out", "base": 60, "desc": "脱敏科研数据集授权（强受限）"},
+            "临床质控": {"kind": "in", "base": 170, "desc": "病历数据支撑院内质控"},
+            "辅助诊断模型": {"kind": "out", "base": 190, "desc": "影像辅助诊断对外服务"},
+            "科研数据集": {"kind": "out", "base": 120, "desc": "脱敏科研数据集授权（强受限）"},
         },
     },
     "能源": {
         "name": "能源电网",
-        "q0": 0.70, "c_cap": 0.6, "h_base": 18.0, "unit_storage": 2.5,
+        "q0": 0.70, "c_cap": 0.6, "h_base": 18.0, "unit_storage": 1.8,
         "h_level": "高（实时性要求）", "trap": "政策一变，商业模式归零",
         "base_tb": 20, "color": "#FF6D00",
         "scenes": {
-            "负荷预测服务": {"kind": "out", "base": 105, "desc": "负荷预测对外服务"},
-            "碳核算数据": {"kind": "out", "base": 75, "desc": "碳核算数据产品（政策敏感）"},
-            "能耗优化": {"kind": "in", "base": 90, "desc": "能耗优化降低运营成本"},
+            "负荷预测服务": {"kind": "out", "base": 190, "desc": "负荷预测对外服务"},
+            "碳核算数据": {"kind": "out", "base": 140, "desc": "碳核算数据产品（政策敏感）"},
+            "能耗优化": {"kind": "in", "base": 170, "desc": "能耗优化降低运营成本"},
         },
     },
 }
@@ -131,14 +131,14 @@ INC_BY_ID = {x["id"]: x for x in INCENTIVES}  # id→激励项 映射（incentiv
 
 # ========== v2.0 新增①：董事会组阁 8 角色（6 必选 + 2 可选，年薪计入当轮 H） ==========
 ROLE_TEAM = [
-    {"id": "de", "name": "数据工程师", "must": True, "salary": 18, "desc": "负责采集和清洗，把数据搬进来、洗干净", "effect": "采集效率+20%，清洗质量+10%"},
-    {"id": "dg", "name": "数据治理师", "must": True, "salary": 15, "desc": "定标准、做质检，保证数据不乱", "effect": "Q 上限+0.05"},
-    {"id": "co", "name": "合规专员", "must": True, "salary": 12, "desc": "审核数据能不能用、能不能卖，守住红线", "effect": "C 系数+0.05，事故概率-30%"},
-    {"id": "alg", "name": "算法工程师", "must": True, "salary": 20, "desc": "建模做场景，把数据变成能用的东西", "effect": "赋能场景成功率+25%"},
-    {"id": "pm", "name": "产品经理", "must": True, "salary": 14, "desc": "对接买家，把数据包装成能卖的产品", "effect": "对外收入+15%，成交周期-20%"},
-    {"id": "op", "name": "运营经理", "must": True, "salary": 13, "desc": "管客户、管复购，让买家持续买单", "effect": "客户留存+15%"},
-    {"id": "cons", "name": "行业顾问（可选）", "must": False, "salary": 10, "desc": "懂本行业门道，帮你避开行业特有坑", "effect": "行业陷阱识别+30%"},
-    {"id": "legal", "name": "法务（可选）", "must": False, "salary": 11, "desc": "审合同，保证签的合同不出问题", "effect": "合同纠纷概率-40%"},
+    {"id": "de", "name": "数据工程师", "must": True, "salary": 12, "desc": "负责采集和清洗，把数据搬进来、洗干净", "effect": "采集效率+20%，清洗质量+10%"},
+    {"id": "dg", "name": "数据治理师", "must": True, "salary": 10, "desc": "定标准、做质检，保证数据不乱", "effect": "Q 上限+0.05"},
+    {"id": "co", "name": "合规专员", "must": True, "salary": 8, "desc": "审核数据能不能用、能不能卖，守住红线", "effect": "C 系数+0.05，事故概率-30%"},
+    {"id": "alg", "name": "算法工程师", "must": True, "salary": 14, "desc": "建模做场景，把数据变成能用的东西", "effect": "赋能场景成功率+25%"},
+    {"id": "pm", "name": "产品经理", "must": True, "salary": 10, "desc": "对接买家，把数据包装成能卖的产品", "effect": "对外收入+15%，成交周期-20%"},
+    {"id": "op", "name": "运营经理", "must": True, "salary": 9, "desc": "管客户、管复购，让买家持续买单", "effect": "客户留存+15%"},
+    {"id": "cons", "name": "行业顾问", "must": False, "salary": 7, "desc": "懂本行业门道，帮你避开行业特有坑", "effect": "行业陷阱识别+30%"},
+    {"id": "legal", "name": "法务", "must": False, "salary": 8, "desc": "审合同，保证签的合同不出问题", "effect": "合同纠纷概率-40%"},
 ]
 ROLE_BY_ID = {x["id"]: x for x in ROLE_TEAM}
 
@@ -160,9 +160,9 @@ EMPOWER_PLANS = [
 
 # ========== v2.0 新增⑥：数据来源与采集限值 ==========
 SOURCE_TYPES = [
-    {"id": "内部", "name": "公司给的（内部）", "limit_tb": 30, "unit_cost": 1.0, "over": "超过 30 TB 部分存储成本翻倍，H 显著上升", "compliance": "需有内部授权记录", "trust_pt": 40},
-    {"id": "爬取", "name": "爬取的（外部）", "limit_tb": 10, "unit_cost": 0.5, "over": "超限即触发合规事故，C 直接降至 0.3", "compliance": "必须有授权，超范围采集直接违规", "trust_pt": 10},
-    {"id": "第三方", "name": "第三方购买", "limit_tb": 20, "unit_cost": 3.0, "over": "超限部分需追加预算，否则交付延期一轮", "compliance": "需签订采购合同并完成脱敏", "trust_pt": 25},
+    {"id": "内部", "name": "公司给的（内部）", "limit_tb": 30, "unit_cost": 1.0, "base_tb": 20, "over": "超过 30 TB 部分存储成本翻倍，H 显著上升", "compliance": "需有内部授权记录", "trust_pt": 40},
+    {"id": "爬取", "name": "爬取的（外部）", "limit_tb": 10, "unit_cost": 0.5, "base_tb": 8, "over": "超限即触发合规事故，C 直接降至 0.3", "compliance": "必须有授权，超范围采集直接违规", "trust_pt": 10},
+    {"id": "第三方", "name": "第三方购买", "limit_tb": 20, "unit_cost": 3.0, "base_tb": 15, "over": "超限部分需追加预算，否则交付延期一轮", "compliance": "需签订采购合同并完成脱敏", "trust_pt": 25},
 ]
 
 # ========== v2.0 新增⑦：数据产品交易合同（关键条，2/3/7 条合规校验） ==========
@@ -198,6 +198,97 @@ DATA_KINDS_CLASS = [
     {"name": "结构化数据", "desc": "整整齐齐排成表格，一行一条记录", "example": "Excel 订单表、数据库里的客户信息", "handle": "最好清洗，Q 加成最高"},
     {"name": "半结构化数据", "desc": "有点结构但没那么规整", "example": "JSON 日志、XML 报文、邮件", "handle": "需先规整化，中等难度"},
     {"name": "非结构化数据", "desc": "没有固定行列，计算机不好直接读", "example": "图片、音频、视频、长文本", "handle": "需额外处理，存得贵、H 高"},
+]
+
+# ========== v8.4 新增①：董事会三年任务书（步骤1，董事会视角落地） ==========
+BOARD_TASK = {
+    "title": "董事会三年任务书（本任 CEO 的 KPI）",
+    "intro": "董事会发钱，也要看业绩。组阁前先领任务：这三年你带领团队要交付什么。任务书会写进审计日志，作为终局六维评分「战略一致性」的对照基准。",
+    "goals": [
+        {"kpi": "三年累计数据资产净值 V", "target": "≥ 300 万", "why": "V 是最终成绩单，直接计入六维评分（权重 30%）"},
+        {"kpi": "合规零事故", "target": "C 系数全程不归零", "why": "C=0 当轮对外收入全额罚没；合规是底线，不是加分项"},
+        {"kpi": "团队健康", "target": "能力 / 意愿 / 稳定 ≥ 65", "why": "三维状态决定 Q 上限与 D 计提敏感度，人垮了资产就垮"},
+        {"kpi": "跑通对外变现", "target": "至少 1 个变现场景对外产生收入", "why": "对内降本只是保底，对外变现才是估值弹性来源"},
+    ],
+}
+
+# ========== v8.4 新增②：行业 SWOT（步骤3，小白也能看懂的战略依据） ==========
+INDUSTRY_SWOT = {
+    "制造": {
+        "S": "设备数据量大、价值直接（良率/停机），对内降本见效快",
+        "W": "数据分散在产线设备、口径不一；非结构化数据（照片/振动波形）清洗难",
+        "O": "数字孪生 / 预测性维护对外服务需求增长；政策鼓励智能制造",
+        "T": "只采不用（振动数据无故障样本）触发「数据闲置税」；封闭数据湖 → 技术路线锁死折价 30%",
+    },
+    "零售": {
+        "S": "用户行为数据高频、实时，变现渠道多（营销/画像/授权）",
+        "W": "C 天花板低（0.7），个人信息保护约束强；买了流量却做不出复购模型",
+        "O": "精准营销与数据产品授权市场大；客户生命周期价值挖掘空间足",
+        "T": "价格战直接打掉对外收入；口碑危机打击意愿值；单一客户依赖计提 D",
+    },
+    "医疗": {
+        "S": "数据专业壁垒高、稀缺性强；院内质控价值确定",
+        "W": "C 天花板最低（0.5），伦理审查难过；单位存储成本最高（3万/TB）",
+        "O": "辅助诊断 / 科研数据集需求大；政策鼓励医疗数据合规流通",
+        "T": "拿了数据永远过不了伦理审查；安全专项检查未整改 C 归零、收入罚没",
+    },
+    "能源": {
+        "S": "实时数据价值密度高；负荷预测 / 能耗优化对外需求稳定",
+        "W": "H 基准最高（18万/轮）；商业模式强依赖政策",
+        "O": "碳核算数据产品（政策敏感但空间大）；虚拟电厂兴起带来新场景",
+        "T": "政策一变商业模式归零；数据出境新规 / 标准强制升级冲击大",
+    },
+}
+
+# ========== v8.4 新增③：预算 A/B/C 三方案（步骤4，方案对比 + 一键填充） ==========
+BUDGET_PLANS = [
+    {"id": "A", "name": "A 方案 · 稳字当头", "collect": 30, "govern": 25, "hr": 20, "comp": 25, "total": 100,
+     "desc": "合规拉满、治理保底，求稳不出事；代价是对外变现弹性小", "fit": "新手 / 医疗·能源等强监管行业"},
+    {"id": "B", "name": "B 方案 · 攻守均衡", "collect": 35, "govern": 35, "hr": 15, "comp": 20, "total": 105,
+     "desc": "采集与治理并重、兼顾合规，标准路径（参考基准）", "fit": "大多数团队首选"},
+    {"id": "C", "name": "C 方案 · 进攻优先", "collect": 45, "govern": 40, "hr": 10, "comp": 10, "total": 105,
+     "desc": "采集+治理拉满赌 Q 提升，合规投入少——C 有跌破风险", "fit": "对 Q 有信心、愿承担合规风险"},
+]
+
+# ========== v8.4 新增④：什么是敏感数据（步骤11，小白也能识别） ==========
+SENSITIVE_DATA_EXAMPLES = [
+    {"类型": "个人信息", "例子": "姓名、身份证号、手机号、住址、人脸照片", "为什么敏感": "能直接定位到具体个人，受《个人信息保护法》保护", "脱敏成本": "高"},
+    {"类型": "企业经营秘密", "例子": "客户名单、采购价、成本结构、未公开财报", "为什么敏感": "泄露损害企业利益，受《反不正当竞争法》保护", "脱敏成本": "中"},
+    {"类型": "财务与账户数据", "例子": "银行卡号、交易流水、发票信息", "为什么敏感": "涉及资金安全，泄露即重大事故", "脱敏成本": "高"},
+    {"类型": "健康与生物信息", "例子": "病历、体检报告、指纹、基因数据", "为什么敏感": "敏感个人信息，处理需单独同意，医疗行业尤其严格", "脱敏成本": "极高"},
+    {"类型": "未成年人信息", "例子": "学籍信息、未成年人位置轨迹", "为什么敏感": "受《未成年人保护法》特殊保护，处理门槛更高", "脱敏成本": "高"},
+]
+
+# ========== v8.4 新增⑤：定价方法白话解释（步骤18） ==========
+PRICING_EXPLAIN = [
+    {"方法": "成本法", "一句话": "按「做这份数据花了多少钱」定价：成本 + 合理利润", "例子": "采集清洗共花 50 万，加 20% 利润 → 对外卖 60 万", "优点": "简单稳当，不会亏本", "缺点": "不管买家觉得值多少，可能定低了", "引擎": "对外收入 × 0.8（保守）"},
+    {"方法": "价值法", "一句话": "按「这份数据帮买家多赚了多少钱」定价：价值分成", "例子": "数据帮客户多赚 200 万 → 按 25% 分成收 50 万", "优点": "买家觉得值，价格天花板高", "缺点": "价值不好衡量，谈价周期长", "引擎": "基准（不乘系数）"},
+    {"方法": "市场法", "一句话": "看市场上同类数据卖多少钱，随行就市", "例子": "同行同类数据集卖 45~55 万，你取中值 50 万", "优点": "买家容易接受、成交快", "缺点": "遇价格战直接被打折", "引擎": "对外收入 × 1.2（弹性大，风险也大）"},
+]
+
+# ========== v8.4 新增⑥：数据确权登记七步流程（步骤8） ==========
+# 依据：国家数据局《数据产权登记工作指引（试行）》（申请→受理→审查→公示→异议处理→信息存证→凭证核发）
+REGISTER_FLOW = [
+    {"step": "① 申请", "desc": "向登记机构提交数据资源清单、来源证明与权属材料；选择登记类型（初次 / 转让 / 变更 / 续期 / 注销）"},
+    {"step": "② 受理", "desc": "登记机构形式审查申请材料，材料齐全即受理并出具受理凭证"},
+    {"step": "③ 审查", "desc": "核实数据权利人身份、检查数据文件与申请信息一致性、确认权属清晰"},
+    {"step": "④ 公示", "desc": "在登记机构官网发布登记信息，公开征求意见，接受社会监督"},
+    {"step": "⑤ 异议处理", "desc": "公示期内有利害关系人提出异议的，登记机构调查核实并作出处理"},
+    {"step": "⑥ 信息存证", "desc": "登记信息与申请材料上链存证，保证可追溯、不可篡改"},
+    {"step": "⑦ 凭证核发", "desc": "核发数据产权登记凭证——权属确立的法定证明，也是入表资本化的依据"},
+]
+
+# ========== v8.4 新增⑦：政策与标准依据（参考文献，估值中心与首页共用） ==========
+REFERENCE_DOCS = [
+    "GB/T 46353—2025《信息技术 大数据 数据资产价值评估》",
+    "财政部《企业数据资源相关会计处理暂行规定》（财会〔2023〕11号）",
+    "财政部《关于加强数据资产管理的指导意见》（财资〔2023〕141号）",
+    "中国资产评估协会《数据资产评估指导意见》（中评协〔2023〕17号）",
+    "中国信通院《数据资产管理实践白皮书（6.0版）》",
+    "中共中央、国务院《关于构建数据基础制度更好发挥数据要素作用的意见》（“数据二十条”）",
+    "国家数据局《数据产权登记工作指引（试行）》",
+    "国家数据局等《“数据要素×”三年行动计划（2024—2026年）》",
+    "《中华人民共和国个人信息保护法》《中华人民共和国数据安全法》",
 ]
 
 # ========== 24 步流程定义（6 篇章 × 4 步） ==========
@@ -238,6 +329,8 @@ def init_state():
         "gold_idea_adopted": {},                      # 金点子采纳 {轮次: True}
         "mask_quiz_ok": {},                           # 脱敏小课堂测验 {轮次: bool}
         "audit_trail": {},                            # S7 审计留痕勾选 {轮次: bool}
+        # v8.4 新增字段
+        "custom_incentives": {},                      # 自定义激励方案 {轮次: {name, type, cost, ...}}
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -352,10 +445,14 @@ def calc_c(ind_key, decisions, round_no, events):
     # 脱敏
     if d.get("mask") == "未脱敏": c = 0.3
     elif d.get("mask") == "部分脱敏": c = min(c, 0.8)
-    # 爬取数据源埋雷
-    if d.get("source") == "爬取": c = min(c, 0.5)
+    # v8.4：脱敏强化投入（≥3万 → C 上限 +0.05，更抗安全专项检查）
+    if d.get("mask_extra", 0) >= 3 and d.get("mask") != "未脱敏":
+        c = min(c + 0.05, 1.0)
+    # 爬取数据源埋雷（v9.1：支持多选数据源，任一选中"爬取"即触发）
+    sources = d.get("sources") or [d.get("source", "内部")]
+    if "爬取" in sources: c = min(c, 0.5)
     # v2.0 新增⑥：爬取超限 → 合规事故，C 直接 0.3
-    if d.get("source_over_limit") and d.get("source") == "爬取":
+    if d.get("source_over_limit") and "爬取" in sources:
         c = min(c, 0.3)
     # 对外高占比触发自动合规审查（对外收入>阈值）
     # 事件卡影响
@@ -442,9 +539,10 @@ def calc_h(ind_key, decisions, round_no, events):
     raw_tb = d.get("source_tb", src_cfg["limit_tb"])
     source_tb = raw_tb * (1.2 if d.get("storage") == "数据湖" else 1.0)
     # 越限处理：按采集量（放大前）判定是否超过来源限值——内部超限部分存储成本翻倍；第三方超限追加预算
+    # v9.1：多选数据源时，渠道成本已含在步骤5单价中，不再叠加引擎越限惩罚（避免重复计费）；仅单选保留
     over_tb = max(raw_tb - src_cfg["limit_tb"], 0)
     over_cost = 0.0
-    if over_tb > 0:
+    if len(d.get("sources") or [src]) == 1 and over_tb > 0:
         if src == "内部":
             over_cost = over_tb * unit * 2
         elif src == "第三方":
@@ -452,6 +550,8 @@ def calc_h(ind_key, decisions, round_no, events):
     extra_tb = max(source_tb - ind["base_tb"], 0)
     # 团队年薪（v2.0 新增①：年薪直接计入当轮 H）
     salary = d.get("team_salary", 0.0)
+    # v8.4：辅助渠道成本（步骤5 多渠道数据源）追加计入 H
+    channel_cost = d.get("channel_cost", 0.0)
     # 事件卡
     for e in events:
         cfg = EVENT_CARDS[e]
@@ -460,18 +560,19 @@ def calc_h(ind_key, decisions, round_no, events):
         if "h_base_mult" in cfg: h_base *= cfg["h_base_mult"]
         if "h_extra" in cfg: h_base += cfg["h_extra"]
         if "tb_mult" in cfg: extra_tb *= cfg["tb_mult"]
-    h = h_base + extra_tb * unit + over_cost + salary
-    return round(h, 1), {"h_base": round(h_base, 1), "extra_tb": round(extra_tb, 1), "unit": round(unit, 2), "over_cost": round(over_cost, 1), "salary": round(salary, 1)}
+    h = h_base + extra_tb * unit + over_cost + salary + channel_cost
+    return round(h, 1), {"h_base": round(h_base, 1), "extra_tb": round(extra_tb, 1), "unit": round(unit, 2), "over_cost": round(over_cost, 1), "salary": round(salary, 1), "channel_cost": round(channel_cost, 1)}
 
 def calc_t(decisions):
-    """v2.0 新增⑨：数据可信度 T = 来源合法清晰40 + 责任人签字30 + 可追溯审计30；T<50 对外变现收入打 5 折"""
+    """v2.0 新增⑨：数据可信度 T = 来源合法清晰40 + 责任人签字30 + 可追溯审计30；T<50 对外变现收入打 5 折
+    v9.1：支持多选数据源——来源得分取「选中源中最不合法」的得分（木桶效应：一个脏渠道拉低整体信任）"""
     d = decisions
     pts = 0
     detail = {}
-    # ① 来源合法清晰（40）：内部 40 / 第三方购买 25 / 爬取 10
-    src = d.get("source", "内部")
-    src_cfg = next((s for s in SOURCE_TYPES if s["id"] == src), SOURCE_TYPES[0])
-    src_pt = src_cfg["trust_pt"]
+    # ① 来源合法清晰（40）：内部 40 / 第三方购买 25 / 爬取 10；多选时取最低
+    sources = d.get("sources") or [d.get("source", "内部")]
+    src_cfgs = [next((s for s in SOURCE_TYPES if s["id"] == x), SOURCE_TYPES[0]) for x in sources]
+    src_pt = min(c["trust_pt"] for c in src_cfgs) if src_cfgs else 40
     pts += src_pt; detail["来源合法清晰"] = src_pt
     # ② 责任人签字（30）：确权登记完成
     signer_pt = 30 if d.get("register") else 0
@@ -530,12 +631,12 @@ def run_valuation():
     d = st.session_state.decisions
     events = st.session_state.events_used.get(r, [])
 
-    # 采集量（TB）：v2.0 来源类型 + 用户输入（越限判定用放大前 raw_tb）
+    # 采集量（TB）：v2.0 来源类型 + 用户输入（越限判定用放大前 raw_tb）；v8.4 + 辅助渠道采集量
     src = d.get("source", "内部")
     src_cfg = next((s for s in SOURCE_TYPES if s["id"] == src), SOURCE_TYPES[0])
     raw_tb = d.get("source_tb", src_cfg["limit_tb"])
     source_tb = raw_tb * (1.2 if d.get("storage") == "数据湖" else 1.0)
-    collected_tb = raw_tb
+    collected_tb = raw_tb + d.get("channel_tb", 0)
 
     cash_in, cash_out = calc_cash(ind_key, d, r, events)
     q, q_detail = calc_q(ind_key, d)
@@ -578,6 +679,18 @@ def run_valuation():
         "t_score": t, "t_detail": t_detail,
         "team": dict(st.session_state.team),
         "empower": d.get("empower_plan"),
+        # v9.1：本轮关键操作摘要（供三轮前后对比 + AI 建议）
+        "ops": {
+            "战略": d.get("strategy", "未定"),
+            "数据源": "+".join(d.get("sources") or [d.get("source", "内部")]),
+            "采集量TB": d.get("source_tb", 0),
+            "累计投入万": round((INIT_BUDGET - st.session_state.budget) / 10000, 1),
+            "脱敏": d.get("mask", "未做"),
+            "赋能": d.get("empower_plan", "未选"),
+            "定价": d.get("pricing", "未定"),
+            "确权": "✅" if d.get("register") else "❌",
+            "激励方案": "、".join(d.get("incentives", [])) if d.get("incentives") else ("自定义:" + str(d.get("custom_incentives", {}).get("name", "")) if d.get("custom_incentives", {}).get("name") else "无"),
+        },
     }
     st.session_state.val_history.append(val)
     record(f"第{r}轮·估值计算", f"V={v}万")
@@ -595,7 +708,7 @@ def run_valuation():
         st.markdown(f"**③ 合规系数 C**（行业天花板 {ind['c_cap']}）")
         st.markdown(f"- 当前 C = **{c}**" + ("（⚠️ C=0：当期对外收入全额罚没）" if c <= 0 else ""))
         st.markdown(f"**③' 数据可信度 T** = 来源合法清晰({t_detail.get('来源合法清晰',0)}) + 责任人签字({t_detail.get('责任人签字',0)}) + 可追溯审计({t_detail.get('可追溯审计',0)}) = **{t}**" + ("（⚠️ T<50：对外变现收入打 5 折）" if t < 50 else "（✅ T≥50：买家信任，收入不打折）"))
-        st.markdown(f"**④ 持有成本 H** = H_基准({h_detail['h_base']}万) + 采集量增量({h_detail['extra_tb']}TB) × 单位存储成本({h_detail['unit']}万/TB) = **{h}万**")
+        st.markdown(f"**④ 持有成本 H** = H_基准({h_detail['h_base']}万) + 采集量增量({h_detail['extra_tb']}TB) × 单位存储成本({h_detail['unit']}万/TB)" + (f" + 辅助渠道({h_detail.get('channel_cost', 0)}万)" if h_detail.get("channel_cost", 0) > 0 else "") + f" = **{h}万**")
         st.markdown(f"**⑤ 减值准备 D** = min({d_pct:.0%}, 30%) × 计提基数({v_before_d}万) = **{d_val}万**")
         st.markdown(f"**⑥ V** = {pv} × {q} × {c} − {h} − {d_val} = **{v}万**")
         st.success(f"### 本轮数据资产净值 V = {v}万")
@@ -604,6 +717,58 @@ def run_valuation():
         if events:
             st.info("**本轮事件卡：**" + "；".join(f"{e}·{EVENT_CARDS[e]['name']}" for e in events))
     return val
+
+def gen_ai_tips(d, ind_key, val):
+    """v9.1：AI 估值提升建议——基于本轮决策短板自动生成下一轮行动清单（规则引擎，不依赖外部 API）"""
+    ind = INDUSTRIES[ind_key]
+    tips = []
+    # 质量 Q
+    if val["q"] < 0.85:
+        tips.append(("📊 质量系数 Q 偏低（{:.2f}）".format(val["q"]), "下一轮加大「治理篇」预算（数据标准/质检/元数据），Q 每提升 0.1，V 直接放大约 10%。"))
+    # 合规 C
+    if val["c"] < ind["c_cap"]:
+        tips.append(("⚖️ 合规系数 C 未到行业天花板（{:.2f}/{:.2f}）".format(val["c"], ind["c_cap"]), "补齐三板斧：合同完整授权 + 全量脱敏 + 确权登记；C 每提升 0.1，V 放大约 10%。"))
+    # 可信度 T
+    if val.get("t_score", 0) < 50:
+        tips.append(("🔐 可信度 T={}（<50，对外收入打 5 折）".format(val.get("t_score", 0)), "优先补三块：①完成确权登记（+30）②开启审计留痕（+30）③数据源换内部/第三方（来源分更高）。T 到 50 后对外收入立即不再打折。"))
+    # 数据源
+    sources = d.get("sources") or [d.get("source", "内部")]
+    if "爬取" in sources:
+        tips.append(("🕸️ 数据源含「爬取」渠道", "爬取会把整体 C 和 T 拉低（木桶效应）。若爬取没带来超额收益，下轮换内部/第三方；如必须用，采集量务必压在限值内。"))
+    if d.get("source_over_limit"):
+        tips.append(("🚨 爬取渠道超限", "已触发合规事故 C=0.3、对外收入罚没。下轮采集量滑块必须控制在爬取限值 10TB 以内。"))
+    # 脱敏
+    if d.get("mask") == "未脱敏":
+        tips.append(("🛡️ 本轮未脱敏", "C=0.3 且对外收入全额罚没风险。下轮必须做全量脱敏（15 万）——这是对外变现的入场券。"))
+    elif d.get("mask") == "部分脱敏":
+        tips.append(("🛡️ 本轮仅部分脱敏", "C 上限被压在 0.8。下轮升级全量脱敏 + 强化投入 ≥3 万（C 上限 +0.05）。"))
+    # 确权登记
+    if not d.get("register"):
+        tips.append(("📋 未完成确权登记", "确权后：T+30、入表可选无形资产（评分更高）、对外谈判加分。步骤 8 是高分必做项。"))
+    # 审计留痕
+    if not d.get("audit_trail"):
+        tips.append(("🧾 未开启审计留痕", "步骤 7 勾选「血缘 + 审计留痕」，T 直接 +30，是目前性价比最高的 30 分。"))
+    # 持有成本 H
+    if val["h"] > 100:
+        tips.append(("💾 持有成本 H={}万偏高".format(val["h"]), "压缩采集量（数据不是越多越好）、选湖仓一体存储（H 基准 -20%）、精简非必要角色/渠道；H 每降 10 万，V 直接 +10 万。"))
+    # 减值 D
+    if val["d"] > 0:
+        tips.append(("📉 本轮减值 D={}万（{:.0%}）".format(val["d"], val["d_pct"]), "对照下跌路径提示：避免单一客户依赖（买家分散）、盯紧事件卡预警，及时调整战略方向。"))
+    # 对外变现
+    if val["cash_out"] > 0 and val.get("t_score", 0) >= 50:
+        tips.append(("💰 对外变现已跑通", "T≥50 后对外收入不再打折。下轮可加大对外场景并用市场法定价（×1.2），同时保持买家分散避免依赖。"))
+    elif val["cash_out"] <= 0:
+        tips.append(("🚀 本轮没有对外收入", "尝试选「对外」型场景（数字孪生/精准营销/辅助诊断等），配合全量脱敏+确权+审计，开启对外变现第二曲线。"))
+    # 建模投入
+    if d.get("model", 0) < 10:
+        tips.append(("🧮 建模投入不足（{:.0f}万）".format(d.get("model", 0) / 10000), "步骤 14 建模每投 10 万 → 场景现金流 +30%，是目前性价比较高的放大手段。"))
+    # 定价
+    if d.get("pricing") == "成本法" and val["cash_out"] > 0:
+        tips.append(("🏷️ 定价用了成本法（×0.8）", "若数据质量 Q 高、买家竞争激烈，可改市场法（×1.2）或价值法（基准），同一份数据卖出更高价。"))
+    # 兜底
+    if not tips:
+        tips.append(("🏆 本轮决策扎实", "保持节奏：守住全量脱敏、确权、审计留痕三条底线，把资金投向当前 Q/C/T 中最低的一项，估值会稳步上涨。"))
+    return tips
 
 # ========== 侧边栏 ==========
 def render_sidebar():
@@ -751,6 +916,66 @@ def render_tab0():
     </div>
     """
     md_html(timeline_html)
+
+    # ===== v8.4 新增：实验介绍（对标国家级虚拟仿真实验申报格式） =====
+    st.divider()
+    st.markdown("### 📖 实验介绍（教学目标 · 原理 · 过程与方法）")
+    with st.expander("🎯 实验教学目标（学完能干什么）", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.markdown("**知识目标**")
+            st.markdown("""
+            - 理解数据资产「投入—采集—治理—赋能—变现—估值」全生命周期管理框架
+            - 掌握数据资产价值评估模型 V = Σ(现金流/1.1ᵗ) × Q × C − H − D 及其每个系数的含义
+            - 熟悉数据确权登记、脱敏合规、入表计量（无形资产/存货）等制度要求
+            """)
+        with c2:
+            st.markdown("**能力目标**")
+            st.markdown("""
+            - 能在预算约束下做出团队组建、数据源选择、治理投入与变现定价的组合决策
+            - 能通过审计日志与估值明细复盘决策因果，识别「质量塌陷/合规事故/数据闲置税」等下跌路径
+            - 能编制数据交易合同、完成确权登记与资产入表披露的关键动作
+            """)
+        with c3:
+            st.markdown("**素养目标**")
+            st.markdown("""
+            - 树立「数据是资产、合规是底线」的经营意识
+            - 理解数据治理不仅是治理数据，更是治理「用数据的人」——激励、责任与信任
+            - 培养面向真实企业的数据资产管理职业胜任力与批判性思维
+            """)
+    with st.expander("⚙️ 实验原理（核心要素仿真设计）", expanded=False):
+        st.markdown("本实验以**数据资产价值评估公式**为主线，把企业数据资产管理拆成 6 个篇章 24 步决策，每步决策真实扣款/生效并写入审计日志。")
+        st.markdown("**核心仿真要素：**")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("""
+            - **行业仿真**：制造/零售/医疗/能源 4 行业，各有 Q 初始、C 天花板、H 基准、单位存储成本与典型陷阱
+            - **数据仿真**：结构化/非结构化 5 类数据类型、内部/爬取/第三方 3 类来源与采集限值
+            - **风险仿真**：20 张事件卡（P-政策/W-价格战/C-客户流失/T-技术替代）+ 五条下跌路径自动触发
+            """)
+        with c2:
+            st.markdown("""
+            - **组织仿真**：董事会组阁 8 角色（年薪计入 H）、团队能力/意愿/稳定三维状态、5 类激励工具与隐藏规则
+            - **估值仿真**：三轮滚动估值，第一轮普遍上涨 → 第二轮事件卡回调 → 第三轮分化
+            - **制度仿真**：确权登记七步流程、合同合规校验、数据资产入表（无形资产/存货）与六维评分
+            """)
+        st.info("**公式红线**：估值引擎对师生完全公开，每一步代入值可查，不做黑箱。")
+    with st.expander("🧭 实验教学过程与实验方法", expanded=False):
+        st.markdown("**总学时 8 学时（课前 1 + 课中 6 + 课后 1）**")
+        st.markdown("""
+        - **课前 1 学时 · 自主预习**：阅读行业基线表与估值公式，完成行业选择预研（SWOT 素材），带着「选哪行、避哪个坑」进入课堂
+        - **课中 6 学时 · 师生联动**：教师端掌握事件卡投放节奏（教学「手柄」）与状态机（开放提交→关闭提交→结算只读）；学生按 24 步完成三轮决策，每轮结算后教师即时点评
+        - **课后 1 学时 · 问题分析探究**：完成复盘三问（资产在哪步变质？激励哪项产生复利？模式搬到其他行业哪条失效？），提交后进入六维评分与特别奖评定
+        """)
+        st.markdown("**实验考核（六维评分）**：")
+        st.markdown("| 维度 | 权重 | 数据来源 |\n|---|---|---|\n| 数据资产净值 V（终值） | 30% | 估值引擎 |\n| 资产质量 Q×C | 20% | 估值引擎 |\n| 估值报告与入表合规性 | 15% | 出表披露物 |\n| 团队状态与健康度 | 15% | 激励系统仪表盘 |\n| 战略一致性与迭代逻辑 | 10% | 三轮决策对比 |\n| 复盘反思深度 | 10% | 复盘三问 |")
+    with st.expander("💻 实验必读（运行环境要求）", expanded=False):
+        st.markdown("""
+        - **网络要求**：建议 4M 以上带宽；推荐使用 Chrome / Edge 最新版浏览器访问
+        - **硬件要求**：普通办公电脑即可（CPU 双核以上、内存 4G 以上、可联网）；无高算力依赖，全程云端运行
+        - **操作系统要求**：Windows 10/11、macOS、Linux 均可；手机/平板可访问但建议使用电脑以获得最佳交互体验
+        - **账号要求**：无需注册，打开链接即用；如需保存进度请使用同一浏览器标签页完成三轮
+        """)
     st.divider()
 
     if not st.session_state.started:
@@ -792,6 +1017,13 @@ def render_tab0():
                 if k not in ("started",):
                     del st.session_state[k]
             st.rerun()
+
+    # ===== v8.4 新增：政策与标准依据（参考文献） =====
+    st.divider()
+    st.markdown("### 📚 政策与标准依据（估值公式与实验设计的制度出处）")
+    for doc in REFERENCE_DOCS:
+        st.markdown(f"- {doc}")
+    st.caption("实验中的估值模型、确权登记流程、入表计量与脱敏要求均按上述国家标准与政策文件设计，供课后查证。")
 
 # ========== Tab1：24 步决策台 ==========
 def render_tab1():
@@ -852,8 +1084,15 @@ def render_step(step):
     d = st.session_state.decisions
     if step == 1:
         # v2.0 修改①+新增②：董事会开局 · 组阁（8 角色，6 必选 + 2 可选，年薪计入当轮 H）
+        # v8.4：新增董事会三年任务书（KPI 领取，董事会视角落地）
         st.markdown("**召开首次董事会 · 组阁**：你是**董事会成员**，拍板定人。8 个角色里 6 个必选、2 个可选；**团队年薪直接计入当轮 H（持有成本）**——人不是白用的。")
         st.info("💡 小白提示：董事会就是公司里拍板大事的那几个人。钱怎么分、人怎么配、风险接不接受，都得自己定。")
+        with st.expander("📜 董事会三年任务书（先领 KPI，再组阁）", expanded=True):
+            st.markdown(f"**{BOARD_TASK['title']}**")
+            st.markdown(BOARD_TASK["intro"])
+            task_df = pd.DataFrame([{"KPI": g["kpi"], "目标": g["target"], "为什么": g["why"]} for g in BOARD_TASK["goals"]])
+            st.dataframe(task_df, use_container_width=True, hide_index=True)
+            st.markdown("💬 董事会的话：**人不配齐、预算不花在刀刃上，任务书就是废纸。** 组阁花的年薪会直接抬升本轮 H——人不是白用的，但没人，后面 23 步寸步难行。")
         salary_total = 0.0
         chosen_ids = []
         cols = st.columns(2)
@@ -880,6 +1119,7 @@ def render_step(step):
             st.rerun()
     elif step == 2:
         # v2.0 新增③：家底盘点清单（五类数据类型）
+        # v8.4：数据类型图示化（图片/音频/视频…用「图形卡片」直观呈现）+ 行业数据示例
         ind = INDUSTRIES[st.session_state.industry]
         st.markdown(f"**盘点家底**（{st.session_state.industry}行业）：先搞清楚“我有什么”，再决定“我缺什么、要不要花钱买/采”。")
         st.info("💡 小白提示：很多团队一上来就花钱买数据，最后发现手里的数据本来就能用——这就是现实中“重复造轮子”的坑。")
@@ -888,24 +1128,104 @@ def render_step(step):
         with c2: st.metric("C 天花板", ind["c_cap"])
         with c3: st.metric("H 基准", f"{ind['h_base']}万/轮")
         with c4: st.metric("团队状态", f"{st.session_state.team['cap']}/{st.session_state.team['mot']}/{st.session_state.team['ret']}")
-        st.markdown("**🧰 现有家底——五类数据类型盘点**")
+        st.markdown("**🧰 现有家底——五类数据类型盘点（图示版）**")
+        # 图示法：五类数据用图形卡片直观展示（修改方案：不用文字堆砌，先看图再读表）
+        type_icons = [
+            ("📄", "文件 / 表格", "Excel·CSV·PDF", "做统计、出报表、喂模型", "坑：格式乱、清洗贵"),
+            ("🖼️", "图片", "产品图·监控截图·影像", "图像识别、质检、审核", "坑：体积大、存得贵、含人脸"),
+            ("🎧", "音频", "客服录音·设备运转声", "语音质检、故障预警", "坑：转写贵、涉隐私需脱敏"),
+            ("🎬", "视频", "监控录像·产线画面", "行为识别、工艺质检", "坑：最占存储"),
+            ("📡", "传感器流数据", "温度·压力·位置上报", "实时监控、预测性维护", "坑：频率越高 H 涨越快"),
+        ]
+        icon_html = """
+        <div style="display:flex;gap:10px;flex-wrap:wrap;padding:4px 0">
+        {cards}
+        </div>
+        """
+        icon_cards = []
+        for emoji, name, ex, use, trap in type_icons:
+            icon_cards.append(f"""
+            <div style="flex:1;min-width:150px;background:#F5F9FF;border:1px solid #BBDEFB;border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:34px">{emoji}</div>
+            <div style="font-weight:800;color:#0D47A1;margin-top:4px">{name}</div>
+            <div style="font-size:12px;color:#455A64;margin-top:4px">{ex}</div>
+            <div style="font-size:12px;color:#1565C0;margin-top:4px">{use}</div>
+            <div style="font-size:11px;color:#C62828;margin-top:4px">{trap}</div>
+            </div>""")
+        md_html(icon_html.format(cards="".join(icon_cards)))
+        st.markdown("**📋 五类数据明细表（看图之后再看表，加深理解）**")
         inv_df = pd.DataFrame([{"类型": x["name"], "是什么": x["desc"], "能干什么": x["use"], "常见坑": x["trap"]} for x in DATA_TYPE_INVENTORY])
         st.dataframe(inv_df, use_container_width=True, hide_index=True)
+        # v8.4：行业数据示例（图示法落地：具体到“多少张照片、能干什么”）
+        ind_example = {
+            "制造": "产线摄像头拍下的**不合格产品照片 3,000 张**——处理好了就能训练质检模型，把产品合格率从 95% 提到 98%",
+            "零售": "客户售后反馈 + 进线电话录音 **2,000 条**——转写去重后能挖出复购流失的真实原因，补上「买了流量却做不出复购模型」的短板",
+            "医疗": "脱敏后的历史病历 **5,000 份**——结构化清洗后支撑临床质控，但必须过伦理审查才能用",
+            "能源": "变电站设备实时上报的**温度/负载数据（每 5 秒一条）**——时序建模后做负荷预测，是能耗优化的底子",
+        }
+        st.markdown(f"**🔎 你在「{st.session_state.industry}」行业手里的牌**：{ind_example.get(st.session_state.industry, '')}")
         st.markdown(f"**⚠️ 行业典型陷阱**：{ind['trap']}——记得提醒自己别踩。")
         if st.button("✅ 确认盘点完成（免费）", disabled=step_done(step)):
             mark_done(2, "盘点家底")
             st.rerun()
     elif step == 3:
         st.markdown("**制定三年战略**：选「对内优先」还是「对外优先」——锁定后改道成本高。")
+        st.info("💡 小白提示：战略不是喊口号。先用 SWOT 看清自己（优势/劣势/机会/威胁），再选方向——对内是保底，对外是弹性，两条路风险完全不同。")
+        # v8.4：行业 SWOT 四象限展示（修改方案：战略展开细化，方便小白理解）
+        sw = INDUSTRY_SWOT.get(st.session_state.industry, {})
+        sw_html = """
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0">
+          <div style="background:#E8F5E9;border:2px solid #43A047;border-radius:12px;padding:12px">
+            <div style="font-weight:800;color:#1B5E20">💪 优势 S</div>
+            <div style="font-size:13px;color:#2E7D32;margin-top:4px">{S}</div>
+          </div>
+          <div style="background:#FFF3E0;border:2px solid #FB8C00;border-radius:12px;padding:12px">
+            <div style="font-weight:800;color:#E65100">🪨 劣势 W</div>
+            <div style="font-size:13px;color:#F57C00;margin-top:4px">{W}</div>
+          </div>
+          <div style="background:#E3F2FD;border:2px solid #1E88E5;border-radius:12px;padding:12px">
+            <div style="font-weight:800;color:#0D47A1">🚀 机会 O</div>
+            <div style="font-size:13px;color:#1976D2;margin-top:4px">{O}</div>
+          </div>
+          <div style="background:#FFEBEE;border:2px solid #E53935;border-radius:12px;padding:12px">
+            <div style="font-weight:800;color:#C62828">⚠️ 威胁 T</div>
+            <div style="font-size:13px;color:#D32F2F;margin-top:4px">{T}</div>
+          </div>
+        </div>
+        """
+        md_html(sw_html.format(**sw))
         choice = st.radio("战略方向：", ["对内优先（降本增效，确定性强、天花板低）", "对外优先（数据变现，弹性大、受合规强约束）"], index=0)
+        # v8.4：3 年目标细化（选定方向后给出可执行的三年拆解）
+        if "对内" in choice:
+            st.markdown("**三年拆解（对内优先）**：① 第1年 治理打底（Q 拉高、合规守住）→ ② 第2年 场景降本（良率/能耗/质控场景跑通）→ ③ 第3年 局部对外（把最稳的场景产品化试水）。")
+        else:
+            st.markdown("**三年拆解（对外优先）**：① 第1年 数据合规化（脱敏+确权+审计留痕，T 拉满）→ ② 第2年 产品化（数据集/API 上线，找分散买家）→ ③ 第3年 规模变现（多场景多买家，避开单一客户依赖）。")
         if st.button("✅ 锁定三年战略（免费）", disabled=step_done(step)):
             st.session_state.decisions["strategy"] = "对内优先" if "对内" in choice else "对外优先"
             mark_done(3, "锁定战略")
             st.rerun()
     elif step == 4:
         # v2.0 新增⑫：预算后果预告横幅
+        # v8.4：A/B/C 三套预算方案对比表 + 一键填充（修改方案：罗列方案做表格对比，方便理解）
         st.markdown("**编制预算**：四类资金分配（采集/治理/人力/合规）。本轮先投入 **120万**。")
         st.warning("⏭️ **后果预告**：预算花在「治理」上 → Q 升；花在「合规」上 → C 守住；花太少 → 后续可能出现「质量塌陷」「合规事故」扣款。下轮会投放事件卡（政策/价格战/客户流失/技术替代），留足现金才有对策。")
+        st.markdown("**💡 三套参考方案（先看对比，再决定怎么分钱）**")
+        plan_df = pd.DataFrame([
+            {"方案": p["name"], "采集": f"{p['collect']}万", "治理": f"{p['govern']}万", "人力": f"{p['hr']}万", "合规": f"{p['comp']}万", "合计": f"{p['total']}万", "思路": p["desc"], "适合": p["fit"]}
+            for p in BUDGET_PLANS
+        ])
+        st.dataframe(plan_df, use_container_width=True, hide_index=True)
+        pc1, pc2, pc3 = st.columns(3)
+        for i, p in enumerate(BUDGET_PLANS):
+            col = [pc1, pc2, pc3][i]
+            with col:
+                if st.button(f"📥 套用 {p['name']}", key=f"bp_{p['id']}_{st.session_state.round}"):
+                    st.session_state[f"b_c_{st.session_state.round}"] = p["collect"]
+                    st.session_state[f"b_g_{st.session_state.round}"] = p["govern"]
+                    st.session_state[f"b_h_{st.session_state.round}"] = p["hr"]
+                    st.session_state[f"b_p_{st.session_state.round}"] = p["comp"]
+                    st.rerun()
+        st.caption("也可以不套用，直接在下方手动微调——每类投入都有上限和下限。")
         c1, c2, c3, c4 = st.columns(4)
         with c1: collect = st.number_input("采集投入（万）", 10, 60, 30, step=5, key=f"b_c_{st.session_state.round}")
         with c2: govern = st.number_input("治理投入（万）", 10, 60, 35, step=5, key=f"b_g_{st.session_state.round}")
@@ -920,30 +1240,95 @@ def render_step(step):
                 st.rerun()
     elif step == 5:
         # v2.0 新增⑥+⑪：数据来源与采集限值 + 常见数据类型小课堂
-        st.markdown("**选择数据源与采集量**：数据分「公司给的」「爬取的」「第三方购买」三类，各有采集限值与越限后果。")
-        st.info("💡 小白提示：爬取数据虽然单价便宜，但越限后果最重——合规红线不因“数据便宜”而放宽。便宜的数据可能最贵。")
+        # v8.4：多渠道数据源 + 滚动条调采集量
+        # v9.1：数据源改为【多选题】（勾选即多渠道），合规按木桶效应判定
+        st.markdown("**选择数据源与采集量**：真实公司的数据从来不是一个渠道——**公司内部 + 行业共享 + 购买/爬取公开数据**往往同时进行。")
+        st.info("💡 小白提示：爬取数据虽然单价便宜，但越限后果最重——合规红线不因“数据便宜”而放宽。便宜的数据可能最贵。多选数据源时，只要其中有一个渠道不合规，整体可信度就被它拉低（木桶效应）。")
         with st.expander("📚 常见数据类型小课堂（先建立直觉再选数据）", expanded=False):
             kinds_df = pd.DataFrame([{"类型": x["name"], "是什么": x["desc"], "例子": x["example"], "在实验中的处理": x["handle"]} for x in DATA_KINDS_CLASS])
             st.dataframe(kinds_df, use_container_width=True, hide_index=True)
             st.caption("结构化最好清洗（Q 加成最高）；非结构化存得贵（H 高）。")
-        src_choice = st.selectbox("数据来源类型：", [s["name"] for s in SOURCE_TYPES], index=0)
-        src_cfg = next(s for s in SOURCE_TYPES if s["name"] == src_choice)
-        default_tb = src_cfg["limit_tb"]
-        source_tb = st.number_input(f"采集量（TB，行业限值 {src_cfg['limit_tb']}TB）", 1, 80, int(default_tb), step=1, key=f"src_tb_{st.session_state.round}")
-        over = max(source_tb - src_cfg["limit_tb"], 0)
+        # —— 数据源多选（v9.1：checkbox 多选，至少选 1 个）——
+        st.markdown("**① 数据源（多选，至少选 1 个）**——勾选的每个渠道都会产生采集量与成本：")
+        src_df = pd.DataFrame([
+            {"渠道": s["name"], "采集限值": f"{s['limit_tb']}TB", "单位成本": f"{s['unit_cost']}万/TB", "可信度T": s["trust_pt"], "基础采集量": f"{s['base_tb']}TB", "说明": s["compliance"]}
+            for s in SOURCE_TYPES
+        ])
+        st.dataframe(src_df, use_container_width=True, hide_index=True)
+        selected_sources = []
+        for s in SOURCE_TYPES:
+            key = f"src_{s['id']}_{st.session_state.round}"
+            if s["id"] == "内部":
+                default_check = True
+            else:
+                default_check = st.session_state.get(key, False)
+            if st.checkbox(f"{s['name']}（限值 {s['limit_tb']}TB · {s['unit_cost']}万/TB · 可信度 {s['trust_pt']}）", value=default_check, key=key):
+                selected_sources.append(s["id"])
+        if not selected_sources:
+            st.error("⚠️ 至少勾选 1 个数据源（公司内部数据是底线，建议至少保留它）")
+        # 采集量：基础量之和 + 额外滚动条
+        src_cfgs = [next(s for s in SOURCE_TYPES if s["id"] == x) for x in selected_sources]
+        base_tb = sum(s["base_tb"] for s in src_cfgs) if src_cfgs else 0
+        cheapest_unit = min(s["unit_cost"] for s in src_cfgs) if src_cfgs else 1.0
+        st.markdown("**② 额外采集量（拖动滚动条调整）**——基础采集量之外再多采一些：")
+        extra_tb = st.slider(
+            f"额外采集量（TB，当前基础 {base_tb}TB）", 0, 15, 0, step=1,
+            key=f"src_extra_{st.session_state.round}",
+            help="拉得越多，H 越高；若勾选了「爬取的」，额外采集量超过 2TB 即触发爬取越限（合规事故）。",
+        )
+        total_tb = base_tb + extra_tb
+        base_cost = sum(s["base_tb"] * s["unit_cost"] for s in src_cfgs) if src_cfgs else 0
+        extra_cost = round(extra_tb * cheapest_unit, 1)
+        total_cost = round(base_cost + extra_cost, 1)
+        # 越限检查：爬取限值 10TB，基础 8 + 额外
+        over = 0
+        over_note = ""
+        if "爬取" in selected_sources:
+            craw_tb = next(s["base_tb"] for s in src_cfgs if s["id"] == "爬取") + extra_tb
+            if craw_tb > 10:
+                over = craw_tb - 10
+                over_note = f"⚠️ **越限预告**：爬取渠道共 {craw_tb}TB 超过限值 10TB（超 {over}TB）——触发合规事故，C 直接降至 0.3"
         if over > 0:
-            st.warning(f"⚠️ **越限预告**：超过 {src_cfg['limit_tb']}TB 共 {over}TB —— {src_cfg['over']}")
-        st.markdown(f"**合规要求**：{src_cfg['compliance']} ｜ **单位成本**：{src_cfg['unit_cost']}万/TB")
-        if st.button("✅ 确认数据源（按采集量扣款）", disabled=step_done(step)):
-            cost = round(source_tb * src_cfg["unit_cost"], 1)
-            if spend(f"步骤5·{src_choice}", int(cost * 10000)):
-                st.session_state.decisions["source"] = src_cfg["id"]
-                st.session_state.decisions["source_tb"] = source_tb
+            st.warning(over_note)
+        st.info(f"💰 **本步支出预览**：基础采集 {base_tb}TB（{base_cost}万）＋ 额外 {extra_tb}TB（{extra_cost}万，按最低价渠道 {cheapest_unit}万/TB） = **{total_cost}万**；总采集量 **{total_tb}TB**")
+        src_label = "+".join(selected_sources) if selected_sources else "未选"
+        if st.button(f"✅ 确认数据源（开支-{total_cost}万）", disabled=step_done(step) or not selected_sources):
+            if spend(f"步骤5·{src_label}", int(total_cost * 10000)):
+                st.session_state.decisions["sources"] = selected_sources
+                # 引擎主源 = 多选中可信度最低的渠道（木桶效应，决定 C/T 底线）
+                st.session_state.decisions["source"] = min(src_cfgs, key=lambda s: s["trust_pt"])["id"]
+                st.session_state.decisions["source_tb"] = total_tb
                 st.session_state.decisions["source_over_limit"] = over > 0
+                st.session_state.decisions["channels"] = [s["name"] for s in src_cfgs]
+                st.session_state.decisions["channel_cost"] = round(total_cost, 1)
+                # v9.1：多选后全部采集量已含在 source_tb 中，channel_tb 置 0 避免重复计入 collected_tb
+                st.session_state.decisions["channel_tb"] = 0
                 mark_done(5, "选择数据源")
                 st.rerun()
     elif step == 6:
         st.markdown("**签订数据合同**：授权范围、期限、可否转授权——决定 C 系数。")
+        st.info("💡 小白提示：签合同不是走形式。授权范围写多宽、能不能转授权，直接决定这笔数据买卖合不合规——C 系数就是合同的「体检表」。")
+        # v8.4：样例合同直观展示（修改方案：模拟几份合同样例，让学生直观感受）
+        with st.expander("📄 样例合同长什么样？（先看两份真实感样例，再选你的条款）", expanded=False):
+            st.markdown("**样例 1 · 完整授权（合规标杆）**")
+            st.markdown("""
+            > **数据授权使用合同（样例）**
+            > 甲方（数据提供方）：XX 智造数据有限公司
+            > 乙方（数据使用方）：XX 零售集团
+            > 一、授权数据：2024 年 1—12 月脱敏用户画像数据集（约 8TB）
+            > 二、授权范围：**完整授权**，乙方可用于精准营销及内部经营分析
+            > 三、转授权：**允许转授权**（需书面告知甲方）
+            > 四、合规承诺：甲方保证数据来源合法、已按《个人信息保护法》完成脱敏；乙方不得超范围使用
+            > 五、期限：12 个月 ｜ 金额：50 万元
+            > **结论：C 系数保持最高档——授权清晰、责任明确。**
+            """)
+            st.markdown("**样例 2 · 口头约定（反面教材）**")
+            st.markdown("""
+            > 甲：这批数据你拿去用吧，回头按销量分成。
+            > 乙：行，那我先用着。
+            > **——没有书面授权、没有用途限制、没有责任条款。**
+            > **结论：C 系数直接掉到 0.6（合规瑕疵）。一旦出事，甲乙双方都说不清，罚没的是你的对外收入。**
+            """)
         choice = st.selectbox("合同条款：", ["完整授权+可转授权（C 保持）", "部分授权（C 0.8，成本-5万）", "口头约定（C 0.6，⚠️合规瑕疵）"], index=0)
         if st.button("✅ 确认合同条款（免费/按条款）", disabled=step_done(step)):
             if "完整授权" in choice:
@@ -972,9 +1357,26 @@ def render_step(step):
                 mark_done(7, "接入与存储")
                 st.rerun()
     elif step == 8:
+        # v8.4：确权登记七步标准流程（依据国家数据局《数据产权登记工作指引（试行）》，修改方案：联网查证正确流程、深入浅出）
         st.markdown("**确权登记 + 责任人签字**：入表前置动作，决定能否资本化（无形资产）；签字即负责，可信度 T +30。")
         st.markdown("- 完成确权登记 → 出表时可选「无形资产」资本化（评分更高）；**责任人签字 → 可信度 T +30**")
         st.markdown("- 跳过确权 → 只能按「存货」计量，且合规评分降低")
+        st.info("💡 小白提示：确权就是给数据资产办「房产证」——先证明这数据是你的、来源合法，才能把它当资产写进报表。没有证，只能当「存货」贱卖。")
+        with st.expander("🗂️ 确权登记标准流程（七步，依据国家数据局《数据产权登记工作指引（试行）》）", expanded=True):
+            reg_html = """
+            <div style="display:flex;gap:8px;flex-wrap:wrap;padding:4px 0">
+            {cards}
+            </div>
+            """
+            reg_cards = []
+            for i, rf in enumerate(REGISTER_FLOW):
+                reg_cards.append(f"""
+                <div style="flex:1;min-width:150px;background:{'#E8F5E9' if i < 3 else ('#E3F2FD' if i < 5 else '#FFF3E0')};border:1px solid #90CAF9;border-radius:10px;padding:10px">
+                <div style="font-weight:800;color:#0D47A1;font-size:14px">{rf['step']}</div>
+                <div style="font-size:12px;color:#37474F;margin-top:4px">{rf['desc']}</div>
+                </div>""")
+            md_html(reg_html.format(cards="".join(reg_cards)))
+            st.caption("登记类型覆盖：初次登记 / 转让登记 / 变更登记 / 续期登记 / 注销登记；本实验完成「初次登记」即可满足资本化条件。")
         if st.button("✅ 完成确权登记并签字（免费）", disabled=step_done(step)):
             st.session_state.decisions["register"] = True
             mark_done(8, "确权登记")
@@ -999,6 +1401,7 @@ def render_step(step):
                 st.rerun()
     elif step == 11:
         # v2.0 新增⑧：脱敏小课堂 + 前置 2 题测验
+        # v8.4：什么是敏感数据（示例罗列，小白也能识别）+ 脱敏投入滚动条
         st.markdown("**安全分级与脱敏**：决定 C 系数上限（行业天花板内）。")
         with st.expander("📖 脱敏小课堂（先看懂再动手）", expanded=False):
             st.markdown("**一句话解释**：脱敏就是把数据里能认出具体某个人的信息去掉或换掉，让它既能用来分析，又不会泄露谁是谁——就像把成绩单上的名字遮住，老师还能统计平均分，但不知道是谁考的。")
@@ -1006,18 +1409,37 @@ def render_step(step):
             st.markdown("**脱敏的难点**：脱得太狠，数据就没用了（Q 下降）；脱得太轻，隐私还在泄露（C 下降）。真实企业每天都在做这个取舍。")
             mask_df = pd.DataFrame([{"方法": x["name"], "怎么做": x["desc"], "举例": x["example"], "适用": x["fit"]} for x in MASK_METHODS])
             st.dataframe(mask_df, use_container_width=True, hide_index=True)
-        st.markdown("**📝 前置小测验（答对 2 题才能执行脱敏）**")
+        # v8.4：什么是敏感数据（修改方案：罗列示例、数量、成本，让小白理解）
+        with st.expander("🔍 什么是敏感数据？（先认识要保护的东西，再决定花多少钱脱敏）", expanded=True):
+            sens_df = pd.DataFrame(SENSITIVE_DATA_EXAMPLES)
+            st.dataframe(sens_df, use_container_width=True, hide_index=True)
+            st.caption("一句话：**能定位到具体的人 / 泄露会出事的数据，都是敏感数据。** 医疗、金融、未成年人数据最敏感，脱敏成本也最高。")
+        st.markdown("**📝 前置小测验（共 4 题，答对 3 题才能执行脱敏）**")
         q1 = st.radio("Q1：脱敏的目的是？", ["A. 让数据更好看", "B. 去掉/替换能识别个人的信息，既能分析又不泄露", "C. 删除所有数据"], key=f"mq1_{st.session_state.round}")
         q2 = st.radio("Q2：手机号 138****6721 用了哪种脱敏方法？", ["A. 掩码", "B. 哈希", "C. 泛化"], key=f"mq2_{st.session_state.round}")
-        q_ok = ("B" in q1) and ("A" in q2)
+        q3 = st.radio("Q3：员工姓名「李明」需要脱敏，以下哪种做法最合适？", ["A. 掩码为「李*」（保留姓氏、隐藏名）", "B. 直接删除整条员工记录", "C. 原样保存，因为姓名不算敏感信息"], key=f"mq3_{st.session_state.round}")
+        q4 = st.multiselect("Q4（多选）：下列哪些做法能保障个人信息安全？", ["A. 对敏感字段加密存储", "B. 只收集业务必需的最少信息（最小化）", "C. 把脱敏后的数据包公开分享给所有人", "D. 定期删除不再需要的过期数据"], key=f"mq4_{st.session_state.round}")
+        score = int("B" in q1) + int("A" in q2) + int("A" in q3) + int(set(q4) == {"A. 对敏感字段加密存储", "B. 只收集业务必需的最少信息（最小化）", "D. 定期删除不再需要的过期数据"})
+        q_ok = score >= 3
         st.session_state.mask_quiz_ok[st.session_state.round] = q_ok
+        st.progress(score / 4, text=f"测验得分 {score}/4")
         if not q_ok:
-            st.warning("❌ 请先通过测验（Q1 选 B，Q2 选 A），通过后才能执行脱敏——避免凭感觉乱点。")
+            st.warning("❌ 未通过（需答对 3 题）。提示：Q1 选 B（去标识化）；Q2 选 A（掩码）；Q3 选 A（姓名可掩码）；Q4 别选 C（公开分享会泄露）。")
         choice = st.selectbox("脱敏方案：", ["全量脱敏（15万，C 保持）", "部分脱敏（8万，C≤0.8）", "未脱敏（0万，⚠️C=0.3 且罚没风险）"], index=0, key=f"mask_{st.session_state.round}")
+        # v8.4：脱敏投入滚动条（修改方案：滚动条拉动、给范围、给收益）
+        extra_mask = st.slider(
+            "额外脱敏投入（匿名化/加密强化，0~5 万）：", 0, 5, 0, step=1,
+            key=f"mask_extra_{st.session_state.round}",
+            help="拉满 3 万以上 → 加密与匿名化强化，C 上限 +0.05（更抗「安全专项检查」事件卡）；0 万则保持方案原值。",
+        )
+        if extra_mask >= 3:
+            st.info(f"🛡️ 强化脱敏生效：C 上限 +0.05（本步合计开支：{15 + extra_mask if '全量' in choice else 8 + extra_mask if '部分' in choice else extra_mask}万）")
         if st.button("✅ 确认脱敏方案", disabled=step_done(step) or not q_ok):
             cost = 15 if "全量" in choice else (8 if "部分" in choice else 0)
+            cost += extra_mask
             if spend("步骤11·脱敏", cost * 10000):
                 st.session_state.decisions["mask"] = "全量脱敏" if "全量" in choice else ("部分脱敏" if "部分" in choice else "未脱敏")
+                st.session_state.decisions["mask_extra"] = extra_mask
                 mark_done(11, "安全分级与脱敏")
                 st.rerun()
     elif step == 12:
@@ -1052,10 +1474,20 @@ def render_step(step):
                 mark_done(13, "赋能方案锁定")
                 st.rerun()
     elif step == 14:
+        # v8.4：滚动条调建模投入（修改方案：拖动滚动条选择花多少钱，实时显示收益区间）
         st.markdown("**建模与验证**：投入越高 → 准确率越高 → 场景现金流放大。")
-        choice = st.selectbox("建模投入：", ["深度建模（20万，现金流+60%）", "标准建模（10万，现金流+30%）", "复用开源（2万，现金流+5%）"], index=0)
-        if st.button("✅ 确认建模投入", disabled=step_done(step)):
-            cost = 20 if "深度" in choice else (10 if "标准" in choice else 2)
+        st.info("💡 小白提示：建模不是越贵越好——深度建模 20 万现金流 +60%，但如果你手里数据质量 Q 不高，模型再强也白搭。先看 Q，再决定投入。")
+        model_inv = st.slider(
+            "建模投入（万）：", 2, 20, 10, step=1,
+            key=f"model_{st.session_state.round}",
+            help="2 万（复用开源）→ 10 万（标准建模）→ 20 万（深度建模）；投入每增加 10 万，场景现金流约 +30%。",
+        )
+        boost = 1.0 + (model_inv * 10000 / 200000.0) * 0.6  # 引擎口径：每 20 万 +60%
+        gain_pct = (boost - 1.0) * 100
+        st.markdown(f"📈 **投入 {model_inv}万 → 场景现金流 ×{boost:.2f}（+{gain_pct:.0f}%）**")
+        st.progress(min(gain_pct / 60, 1.0), text=f"现金流放大 {gain_pct:.0f}%")
+        if st.button(f"✅ 确认建模投入（开支-{model_inv}万）", disabled=step_done(step)):
+            cost = model_inv
             if spend("步骤14·建模", cost * 10000):
                 st.session_state.decisions["model"] = cost
                 mark_done(14, "建模与验证")
@@ -1087,8 +1519,14 @@ def render_step(step):
             mark_done(17, "产品化")
             st.rerun()
     elif step == 18:
+        # v8.4：定价方法白话解释 + 案例（修改方案：专业词汇给小白解释 + 样例展示，避免选不明白）
         st.markdown("**定价**：成本法 / 价值法 / 市场法——三种方法结果不同。")
-        choice = st.selectbox("定价方法：", ["成本法（对外收入×0.8，稳）", "价值法（基准）", "市场法（对外收入×1.2，弹性大）"], index=0)
+        st.info("💡 小白提示：定价就是回答「这份数据卖多少钱」——按成本定、按价值定、还是按市场定，三种答案差很多。先看下表再选。")
+        with st.expander("📖 三种定价方法 · 白话解释 + 算例（先看懂再选）", expanded=True):
+            pr_df = pd.DataFrame([{"方法": x["方法"], "一句话解释": x["一句话"], "算例": x["例子"], "优点": x["优点"], "缺点": x["缺点"], "引擎效果": x["引擎"]} for x in PRICING_EXPLAIN])
+            st.dataframe(pr_df, use_container_width=True, hide_index=True)
+            st.markdown("**💡 怎么选？** 手里数据 Q 高、买家竞争激烈 → 市场法吃弹性；想求稳不亏本 → 成本法；数据帮买家赚钱明显 → 价值法。")
+        choice = st.radio("定价方法（单选）：", ["成本法（对外收入×0.8，稳）", "价值法（基准）", "市场法（对外收入×1.2，弹性大）"], index=0, horizontal=True)
         if st.button("✅ 确认定价（免费）", disabled=step_done(step)):
             st.session_state.decisions["pricing"] = "成本法" if "成本" in choice else ("价值法" if "价值" in choice else "市场法")
             mark_done(18, "定价")
@@ -1110,7 +1548,9 @@ def render_step(step):
             total_amt = st.number_input("合同总额（万元）：", 1, 500, 50, key=f"cs_{st.session_state.round}")
         with c2:
             legal_src = st.selectbox("第二条【校验】数据来源合法性：", ["内部授权（合法）", "合规采集（合法）", "来源不明确（违规）"], key=f"cl_{st.session_state.round}")
-            use_limit = st.text_input("第三条【校验】用途限制（具体用途，非空）：", key=f"cu_{st.session_state.round}")
+            st.markdown("**📝 第三条「用途限制」怎么填？**（小白引导）")
+            st.markdown("> 用途限制 = **写明数据「只能拿来干什么、不能拿来干什么」**。\n> 参考写法：`仅用于会员复购预测与内部经营分析，禁止转售、禁止用于第三方广告投放`。\n> 关键：① 具体到业务场景（如：客户画像/复购预测/风控建模）；② 明确禁止事项（如：不得转售/不得用于与合同无关用途）；③ 一句话能说清，别只写“数据分析”这种笼统词。")
+            use_limit = st.text_input("第三条【校验】用途限制（具体用途，非空）：", placeholder="例：仅用于会员复购预测，禁止转售与广告投放", key=f"cu_{st.session_state.round}")
             liability = st.radio("第七条【校验】法律责任承担方：", ["甲方承担（数据方负责）", "乙方承担", "双方各半"], key=f"clb_{st.session_state.round}")
             q_floor = st.number_input("第六条 Q 下限（0.5-0.9）：", 0.5, 0.9, 0.7, step=0.05, key=f"cq_{st.session_state.round}")
         buyer_choice = st.selectbox("买家结构（影响下跌路径）：", ["多个分散买家（收入×1.0，无依赖风险）", "单一独家大客户（收入×1.5，⚠️单一客户依赖 D 20%）", "双客户（收入×1.2，轻度依赖）"], index=0)
@@ -1157,6 +1597,15 @@ def render_step(step):
         if st.button("⚖️ 触发估值引擎（公开计算）", type="primary", disabled=step_done(step) or locked(st.session_state.round)):
             run_valuation()
             mark_done(23, "第三方估值")
+            st.rerun()
+        # v9.1：AI 估值提升建议（估值完成后展示，指导下一轮）
+        last = st.session_state.val_history[-1] if st.session_state.val_history else None
+        if last and last.get("round") == st.session_state.round:
+            st.divider()
+            st.markdown("### 🤖 AI 估值提升建议（下一轮行动清单）")
+            st.info("根据你本轮决策的短板自动生成——下一轮按清单逐条补齐，估值就能明显上涨。")
+            for title, body in gen_ai_tips(st.session_state.decisions, st.session_state.industry, last):
+                st.markdown(f"- **{title}**：{body}")
     elif step == 24:
         st.markdown("**董事会答辩**：向「投资方」说明涨跌原因，提交下轮调整方案。")
         note = st.text_area("答辩陈述（一句话说明本轮决策逻辑）：", height=100)
@@ -1181,15 +1630,29 @@ def render_incentives():
             st.caption(f"{inc['ref']}｜{inc['hidden']}")
     total_cost = sum(inc["cost"] for inc in INCENTIVES if options.get(inc["id"]))
     n_chosen = sum(1 for v in options.values() if v)
-    st.markdown(f"**激励合计**：{fmt(total_cost)}（本轮预算上限 {fmt(budget_limit)}）")
-    if total_cost > budget_limit:
-        st.error("❌ 超激励预算！请减少选择")
+    # v8.4：自定义激励方案（修改方案：单独对话框，学生提自己的见解——孝心工资、弹性工时等，参照胖东来）
+    st.divider()
+    st.markdown("### ✍️ 自定义激励方案（可选，写出你的创意）")
+    st.info("💡 好激励不是抄工具箱。胖东来给员工父母发「孝心工资」、海底捞给一线授权——**激励的尽头是懂人**。这里允许你设计工具箱里没有的方案，真实生效。")
+    cust_name = st.text_input("方案名称（如：孝心工资 / 弹性工时 / 内部创业孵化……）：", key=f"cust_n_{st.session_state.round}")
+    cust_type = st.radio("方案类型：", ["非金钱（关怀类，稳团队）", "金钱（现金类，提意愿）"], index=0, horizontal=True, key=f"cust_t_{st.session_state.round}")
+    cust_cost = st.slider("本方案预算（万，0~20）：", 0, 20, 5, step=1, key=f"cust_c_{st.session_state.round}", help="非金钱关怀类推荐小预算（孝心工资 5 万就很有温度）；现金类预算越大意愿加得越多。")
+    has_custom = bool(cust_name.strip())
+    if has_custom:
+        cust_effect = "意愿+8、稳定+4（非金钱·关怀复利）" if "非金钱" in cust_type else "意愿+10（金钱，下轮有反噬风险）"
+        st.success(f"✅ 自定义方案已就绪：**{cust_name.strip()}**（{cust_type.split('（')[0]}，预算 {cust_cost}万）→ 效果：{cust_effect}")
+    st.markdown(f"**激励合计**：{fmt(total_cost + (cust_cost if has_custom else 0) * 10000)}（本轮预算上限 {fmt(budget_limit)}）")
+    if total_cost + (cust_cost if has_custom else 0) * 10000 > budget_limit:
+        st.error("❌ 超激励预算！请减少选择或降低自定义方案预算")
     if n_chosen >= 5:
-        st.warning("⚠️ 不能全选：5 个工具至少要舍弃 1 个——什么都给，等于什么都没给。")
-    can_go = total_cost <= budget_limit and n_chosen < 5
+        st.warning("⚠️ 不能全选：5 个工具箱至少舍弃 1 个——什么都给，等于什么都没给。")
+    can_go = (total_cost + (cust_cost if has_custom else 0) * 10000) <= budget_limit and n_chosen < 5
     if st.button("✅ 投放激励方案（按选择扣款）", disabled=step_done(21) or not can_go):
         chosen = [i["id"] for i in INCENTIVES if options.get(i["id"])]
-        if total_cost > 0 and not spend("步骤21·团队激励", total_cost):
+        total_spend = total_cost
+        if has_custom:
+            total_spend += cust_cost * 10000
+        if total_spend > 0 and not spend("步骤21·团队激励", total_spend):
             st.stop()
         st.session_state.incentives = chosen
         st.session_state.incentives_round[st.session_state.round] = chosen
@@ -1199,6 +1662,17 @@ def render_incentives():
             inc = next(x for x in INCENTIVES if x["id"] == i)
             for k, v in inc["effect"].items():
                 t[k] = max(0, min(100, t[k] + v))
+        # v8.4：自定义激励真实生效
+        if has_custom:
+            if "非金钱" in cust_type:
+                t["mot"] = max(0, min(100, t["mot"] + 8))
+                t["ret"] = max(0, min(100, t["ret"] + 4))
+                st.session_state.custom_incentives[st.session_state.round] = {"name": cust_name.strip(), "type": "非金钱", "cost": cust_cost, "mot": 8, "ret": 4}
+            else:
+                t["mot"] = max(0, min(100, t["mot"] + 10))
+                money_only = True
+                st.session_state.custom_incentives[st.session_state.round] = {"name": cust_name.strip(), "type": "金钱", "cost": cust_cost, "mot": 10}
+            record(f"第{st.session_state.round}轮·自定义激励", f"{cust_name.strip()[:12]}（{cust_cost}万）")
         # 隐藏规则即时生效部分
         if money_only:
             t["mot"] = max(0, t["mot"] - 5)
@@ -1209,19 +1683,23 @@ def render_incentives():
                     t["mot"] = max(0, t["mot"] - 10)  # 纯金钱第二轮反噬
         mark_done(21, "团队激励投放")
         st.rerun()
-    # v2.0 新增⑩：金点子征集（结算后开放）
+    # v2.0 新增⑩：金点子征集
+    # v9.1：输入框【始终显示】——学生随时可写，结算前提交记为「预提交」，结算后由教师评估
     st.divider()
-    st.markdown("### 💡 我的激励金点子（结算后开放，教师端评估采纳）")
-    if st.session_state.round in st.session_state.settled or step_done(23):
-        idea = st.text_area("提出文档里没有的激励创意（如：弹性工时、内部创业孵化……）：", height=80, key=f"idea_{st.session_state.round}")
-        if st.button("📤 提交金点子"):
-            if idea.strip():
-                st.session_state.gold_ideas[st.session_state.round] = idea.strip()
-                record(f"第{st.session_state.round}轮·金点子", idea.strip()[:20])
-                st.success("✅ 已提交，等待教师端评估（采纳 → 稳定+10 意愿+10 V+5%）")
-                st.rerun()
-    else:
-        st.caption("本轮结算后开放（需先完成第 23 步估值）。")
+    st.markdown("### 💡 我的激励金点子（随时可写，教师端评估采纳）")
+    already = st.session_state.gold_ideas.get(st.session_state.round, "")
+    settled_ok = st.session_state.round in st.session_state.settled or step_done(23)
+    if not settled_ok and already:
+        st.caption("📌 本轮回合计结算前已提交：`" + already[:30] + ("…" if len(already) > 30 else "") + "`（结算后教师评估，采纳 → 稳定+10 意愿+10 V+5%）")
+    idea = st.text_area("提出文档里没有的激励创意（如：弹性工时、内部创业孵化……）：", value=already, height=80, key=f"idea_{st.session_state.round}", placeholder="例：给数据工程师发「弹性工时券」，每周可任选一天远程办公……")
+    if st.button("📤 提交金点子", disabled=bool(already)):
+        if idea.strip():
+            st.session_state.gold_ideas[st.session_state.round] = idea.strip()
+            record(f"第{st.session_state.round}轮·金点子", idea.strip()[:20])
+            st.success("✅ 已提交" + ("（结算前预提交，结算后由教师评估）" if not settled_ok else "，等待教师端评估（采纳 → 稳定+10 意愿+10 V+5%）"))
+            st.rerun()
+    if not settled_ok:
+        st.caption("💬 金点子随时可写：结算前提交会保存为「预提交」，完成第 23 步估值结算后，教师端即可评估采纳。")
 
 # ========== Tab2：估值中心 ==========
 def render_tab2():
@@ -1261,6 +1739,34 @@ def render_tab2():
                 rows.append([kname, pv_, cv_, arrow, ""])
             cmp_df = pd.DataFrame(rows, columns=["指标", f"第{len(st.session_state.val_history)-1}轮", f"第{len(st.session_state.val_history)}轮", "变化", "原因说明（学生填）"])
             st.dataframe(cmp_df, use_container_width=True, hide_index=True)
+        # v9.1：三轮操作与估值前后对比（操作→结果，一眼看懂三轮决策差异）
+        if st.session_state.val_history:
+            st.markdown("#### 🕹️ 三轮操作与估值前后对比（操作→结果）")
+            st.caption("每一行是一轮：左边看你当时做了什么操作，右边看估值结果——三轮放一起，就能看清“哪一步操作真正抬高了估值”。")
+            ops_rows = []
+            for x in st.session_state.val_history:
+                op = x.get("ops", {})
+                ops_rows.append({
+                    "轮次": f"第{x['round']}轮",
+                    "战略": op.get("战略", "-"),
+                    "数据源": op.get("数据源", "-"),
+                    "脱敏": op.get("脱敏", "-"),
+                    "赋能": op.get("赋能", "-"),
+                    "定价": op.get("定价", "-"),
+                    "确权": op.get("确权", "-"),
+                    "V净值(万)": x["v"], "Q": x["q"], "C": x["c"], "H": x["h"], "D": x["d"],
+                })
+            ops_df = pd.DataFrame(ops_rows)
+            st.dataframe(ops_df, use_container_width=True, hide_index=True)
+            if len(st.session_state.val_history) >= 2:
+                diff = st.session_state.val_history[-1]["v"] - st.session_state.val_history[-2]["v"]
+                last_op = st.session_state.val_history[-1].get("ops", {})
+                if diff > 0:
+                    st.success(f"💡 **结论**：第{len(st.session_state.val_history)}轮相对上一轮 **V 上升 {diff:.1f}万**。复盘哪些操作是功臣（如本轮 {last_op.get('战略','-')}战略 + {last_op.get('数据源','-')}数据源 + {last_op.get('脱敏','-')}），下轮继续强化。")
+                elif diff < 0:
+                    st.error(f"💡 **结论**：第{len(st.session_state.val_history)}轮相对上一轮 **V 下降 {abs(diff):.1f}万**。对照下跌路径提示，找出拖后腿的操作（如 {last_op.get('数据源','-')} 数据源 / 未脱敏 / 单一客户），下轮立即修正。")
+                else:
+                    st.info("💡 **结论**：本轮 V 与上轮持平，需通过 AI 建议找短板，打破瓶颈。")
         # 四系数每轮变化
         st.markdown("#### 🔍 影响估值的四个系数（Q/C/H/D 每轮变化）")
         c1, c2 = st.columns([3, 2])
@@ -1322,6 +1828,12 @@ def render_tab2():
         if evs:
             ev_html = "　".join(f"<span style='background:#FFF3E0;border:1px solid #FFB74D;border-radius:8px;padding:2px 8px;font-size:13px'>{e}·{EVENT_CARDS[e]['name']}</span>" for e in evs)
             st.markdown(f"- **第{rnd}轮**：{ev_html}", unsafe_allow_html=True)
+    # v8.4：估值公式政策与标准依据（修改方案：估值公式要有文献支撑，不是拍脑袋）
+    st.divider()
+    st.markdown("### 📚 估值公式与实验设计的政策依据")
+    for doc in REFERENCE_DOCS:
+        st.markdown(f"- {doc}")
+    st.caption("估值模型口径（现金流折现、Q/C/H/D 系数、数据可信度 T）均参考上述国家与行业标准设计；确权登记流程依据国家数据局《数据产权登记工作指引（试行）》。")
 
 # ========== Tab3：团队与激励 ==========
 def render_tab3():
@@ -1354,6 +1866,12 @@ def render_tab3():
     st.markdown(f"- 纯金钱激励第二轮反噬：{'⚠️ 已触发' if len(money_rounds) >= 2 else '未触发'}（纯金钱第二轮预算收紧 → 意愿暴跌）")
     st.markdown(f"- 「培训+授权」第三轮复利：{'✅ 已埋下复利' if train_auth else '未触发'}（能力值 → Q 永久加成）")
     st.markdown(f"- 连续两轮无任何非金钱激励 → 稳定值不可逆下降：{'⚠️ 注意' if not train_auth and len(money_rounds) >= 1 else '安全'}")
+    # v8.4：自定义激励方案展示（修改方案：激励的尽头是懂人——学生原创方案）
+    if st.session_state.custom_incentives:
+        st.divider()
+        st.markdown("### 💡 团队自定义激励（学生原创方案，真实生效）")
+        for rid, ci in st.session_state.custom_incentives.items():
+            st.markdown(f"- **第{rid}轮 · {ci['name']}**（{ci['type']}，{ci['cost']}万）→ 意愿 +{ci.get('mot', 0)}" + (f"、稳定 +{ci.get('ret', 0)}" if ci.get("ret") else "") + "　✅ 已生效")
 
 # ========== Tab4：教师端 ==========
 def render_tab4():
