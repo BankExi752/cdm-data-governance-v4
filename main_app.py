@@ -128,6 +128,7 @@ INCENTIVES = [
     {"id": "equity", "name": "股权/分红", "type": "金钱", "cost": 200000, "effect": {"ret": 15, "mot": 5}, "hidden": "长期绑定，第三轮才显现效果"},
     {"id": "rotate", "name": "岗位轮换", "type": "非金钱", "cost": 50000, "effect": {"cap": -5}, "hidden": "能力值短期下降，长期提升（第三轮+12）"},
 ]
+INC_BY_ID = {x["id"]: x for x in INCENTIVES}  # id→激励项 映射（incentives_round 里存的是 id）
 
 # ========== 24 步流程定义（6 篇章 × 4 步） ==========
 PHASES = [
@@ -945,7 +946,7 @@ def render_incentives():
         st.session_state.incentives = chosen
         st.session_state.incentives_round[st.session_state.round] = chosen
         t = st.session_state.team
-        money_only = all(INCENTIVES[i]["type"] == "金钱" for i in chosen) and len(chosen) > 0
+        money_only = all(INC_BY_ID[i]["type"] == "金钱" for i in chosen) and len(chosen) > 0
         for i in chosen:
             inc = next(x for x in INCENTIVES if x["id"] == i)
             for k, v in inc["effect"].items():
@@ -956,7 +957,7 @@ def render_incentives():
         if st.session_state.round >= 2:
             prev = st.session_state.incentives_round.get(st.session_state.round - 1, [])
             if money_only and prev:
-                if all(INCENTIVES[i]["type"] == "金钱" for i in prev):
+                if all(INC_BY_ID[i]["type"] == "金钱" for i in prev):
                     t["mot"] = max(0, t["mot"] - 10)  # 纯金钱第二轮反噬
         mark_done(21, "团队激励投放")
         st.rerun()
@@ -1069,7 +1070,7 @@ def render_tab3():
     st.dataframe(df, use_container_width=True, hide_index=True)
     st.divider()
     st.markdown("### 🕵️ 隐藏规则（复盘时揭示，当前只标记已触发的部分）")
-    money_rounds = [r for r in st.session_state.incentives_round if st.session_state.incentives_round[r] and all(INCENTIVES[i]["type"] == "金钱" for i in st.session_state.incentives_round[r])]
+    money_rounds = [r for r in st.session_state.incentives_round if st.session_state.incentives_round[r] and all(INC_BY_ID[i]["type"] == "金钱" for i in st.session_state.incentives_round[r])]
     train_auth = any({"train", "auth"}.issubset(set(st.session_state.incentives_round.get(r, []))) for r in [1, 2, 3])
     st.markdown(f"- 纯金钱激励第二轮反噬：{'⚠️ 已触发' if len(money_rounds) >= 2 else '未触发'}（纯金钱第二轮预算收紧 → 意愿暴跌）")
     st.markdown(f"- 「培训+授权」第三轮复利：{'✅ 已埋下复利' if train_auth else '未触发'}（能力值 → Q 永久加成）")
