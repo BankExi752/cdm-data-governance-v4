@@ -1013,9 +1013,9 @@ def render_sidebar():
             st.divider()
             st.markdown("### 💰 财务仪表盘")
             used = INIT_BUDGET - st.session_state.budget
-            c1, c2 = st.columns(2)
-            with c1: st.metric("剩余预算", fmt(st.session_state.budget), delta=f"已用{fmt(used)}")
-            with c2: st.metric("累计收入", fmt(st.session_state.revenue))
+            # v3.2.1 修复：侧边栏两列 metric 过窄导致数值被省略号截断（350万→35...），改单列直排全宽显示
+            st.metric("剩余预算", fmt(st.session_state.budget), delta=f"已用{fmt(used)}")
+            st.metric("累计收入", fmt(st.session_state.revenue))
             st.divider()
             st.markdown("### 👥 团队三维状态")
             t = st.session_state.team
