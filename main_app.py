@@ -76,8 +76,16 @@ html, body, [data-testid="stAppViewContainer"]{
 /* 指标卡 / 表格卡片化 */
 [data-testid="stMetric"]{
   background:var(--dp-card);border:1px solid var(--dp-line);border-radius:14px;
-  padding:14px 16px;box-shadow:0 3px 12px rgba(15,43,70,.06);
+  padding:10px 12px;box-shadow:0 3px 12px rgba(15,43,70,.06);
 }
+/* 指标值防截断：窄容器（侧边栏/小窗口）下不用省略号，完整显示并自适应字号 */
+[data-testid="stMetricValue"]{
+  overflow:visible !important; text-overflow:clip !important;
+  white-space:normal !important; line-height:1.25;
+  font-size:clamp(18px, 4.2vw, 26px);
+}
+[data-testid="stMetricLabel"]{font-size:13px;color:#4A5A78;padding-bottom:4px;}
+[data-testid="stMetricDelta"]{font-size:13px;}
 [data-testid="stDataFrame"],[data-testid="stTable"]{
   border-radius:12px;overflow:hidden;box-shadow:0 3px 12px rgba(15,43,70,.06);
 }
