@@ -18,7 +18,6 @@ main_app.py
 """
 import streamlit as st
 import pandas as pd
-import streamlit_antd_components as sac  # v2026-10-21：GitHub 社区组件（Ant Design 步骤条/提示/结果页）
 from datetime import datetime
 
 # ========== 页面配置 ==========
@@ -35,6 +34,72 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ========== 数据资产·深蓝科技主题 v3.2（纯视觉 CSS，零逻辑改动） ==========
+_THEME_CSS = """<style>
+:root{
+  --dp-blue:#1554F0; --dp-deep:#0F2B46; --dp-cyan:#00B8D9;
+  --dp-bg:#F6F9FE; --dp-card:#FFFFFF; --dp-ink:#1B2A41; --dp-line:#E4EDF9;
+}
+html, body, [data-testid="stAppViewContainer"]{
+  background:linear-gradient(180deg,#F6F9FE 0%,#EDF3FB 100%);
+  font-family:"Microsoft YaHei","PingFang SC","Source Han Sans SC",system-ui,sans-serif;
+  color:var(--dp-ink);
+}
+[data-testid="stHeader"]{background:rgba(246,249,254,.0);}
+/* 主按钮：科技蓝渐变 */
+.stButton > button{
+  border-radius:10px;font-weight:600;
+  background:linear-gradient(135deg,#1554F0,#00B8D9);color:#fff;border:none;
+  box-shadow:0 3px 10px rgba(21,84,240,.22);
+  transition:transform .15s, box-shadow .15s;
+}
+.stButton > button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(21,84,240,.32);color:#fff;}
+.stButton > button:active{transform:translateY(0);}
+/* Tab 导航：选中高亮 */
+.stTabs [data-baseweb="tab-list"]{gap:6px;border-bottom:2px solid var(--dp-line);}
+.stTabs [data-baseweb="tab"]{
+  border-radius:10px 10px 0 0;padding:10px 16px;font-weight:600;color:#4A5A78;font-size:15px;
+}
+.stTabs [aria-selected="true"]{
+  color:var(--dp-blue);background:linear-gradient(180deg,rgba(21,84,240,.10),rgba(21,84,240,0));
+}
+/* 进度条：渐变 */
+.stProgress > div > div > div{background:linear-gradient(90deg,#1554F0,#00B8D9);border-radius:8px;}
+/* 侧边栏：浅蓝科技面板（控件保持深字可读） */
+[data-testid="stSidebar"]{
+  background:linear-gradient(180deg,#EAF2FC 0%,#F6F9FE 100%);
+  border-right:1px solid var(--dp-line);
+}
+[data-testid="stSidebar"] .stMarkdown h1,[data-testid="stSidebar"] .stMarkdown h2,
+[data-testid="stSidebar"] .stMarkdown h3{color:var(--dp-deep);}
+/* 指标卡 / 表格卡片化 */
+[data-testid="stMetric"]{
+  background:var(--dp-card);border:1px solid var(--dp-line);border-radius:14px;
+  padding:14px 16px;box-shadow:0 3px 12px rgba(15,43,70,.06);
+}
+[data-testid="stDataFrame"],[data-testid="stTable"]{
+  border-radius:12px;overflow:hidden;box-shadow:0 3px 12px rgba(15,43,70,.06);
+}
+/* expander / 分割卡片 */
+[data-testid="stExpander"]{
+  border:1px solid var(--dp-line);border-radius:12px;
+  background:rgba(255,255,255,.72);box-shadow:0 2px 8px rgba(15,43,70,.04);
+}
+[data-testid="stExpander"] summary{font-weight:600;}
+/* 正文排版 */
+.stMarkdown p,.stMarkdown li{line-height:1.75;}
+/* 滚动条 */
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:#C9D8EE;border-radius:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+</style>"""
+
+def apply_theme():
+    """注入全局主题样式（纯视觉）"""
+    st.markdown(_THEME_CSS, unsafe_allow_html=True)
+
+apply_theme()
 
 INIT_BUDGET = 3500000  # 每轮 350 万（v2.0 校准：含赋能45万/年薪计入H/来源成本；标准路径约需 278 万，留余量应对事件卡）
 
@@ -307,18 +372,6 @@ REFERENCE_DOCS = [
 ]
 
 # ========== 24 步流程定义（6 篇章 × 4 步） ==========
-# v2026-10-21：下一步后果预告上移为模块常量，侧边栏与运营驾驶舱共用
-PREVIEW_MAP = {
-    1: "组阁 8 角色：年薪合计直接计入本轮 H（人不是白用的）",
-    4: "预算分配：治理投入→Q 升；合规投入→C 守住；投入太少→质量塌陷/合规事故扣款",
-    5: "选数据源：采集量越大 H 越高；爬取超限→C 直接 0.3（合规事故）",
-    7: "存储方案：湖仓一体 H 基准-20%；可信溯源四步全做 → 可信度 T +30",
-    11: "脱敏：全量 15万→C 保持；不脱敏→C=0.3 且对外收入罚没；需先过小测验",
-    13: "赋能方案：A/B/C 三选一，立即开支 20/45/80 万，Q 加成 +0.03/+0.06/+0.10",
-    19: "签合同：2/3/7 条填错会被阻止；单一独家大客户→D 20%",
-    21: "激励：预算=现金×15%（上限50万），不能全选；纯金钱下轮意愿反噬",
-    23: "估值结算：V = Σ现金流×Q×C−H−D，本轮收益/损失当场见分晓",
-}
 PHASES = [
     {"name": "投入篇", "steps": [1, 2, 3, 4], "aim": "定好团队与预算——开局底子"},
     {"name": "采集篇", "steps": [5, 6, 7, 8], "aim": "拿到数据并安全存好——原料入仓"},
@@ -963,7 +1016,18 @@ def render_sidebar():
             st.progress(t["ret"] / 100, text=f"稳定 {t['ret']}")
             st.divider()
             st.markdown("### ⏭️ 下一步后果预告")
-            st.info(PREVIEW_MAP.get(st.session_state.step, "完成本步后继续推进 24 步流程；每步决策都真实扣款/生效，写审计日志、可撤销。"))
+            preview_map = {
+                1: "组阁 8 角色：年薪合计直接计入本轮 H（人不是白用的）",
+                4: "预算分配：治理投入→Q 升；合规投入→C 守住；投入太少→质量塌陷/合规事故扣款",
+                5: "选数据源：采集量越大 H 越高；爬取超限→C 直接 0.3（合规事故）",
+                7: "存储方案：湖仓一体 H 基准-20%；可信溯源四步全做 → 可信度 T +30",
+                11: "脱敏：全量 15万→C 保持；不脱敏→C=0.3 且对外收入罚没；需先过小测验",
+                13: "赋能方案：A/B/C 三选一，立即开支 20/45/80 万，Q 加成 +0.03/+0.06/+0.10",
+                19: "签合同：2/3/7 条填错会被阻止；单一独家大客户→D 20%",
+                21: "激励：预算=现金×15%（上限50万），不能全选；纯金钱下轮意愿反噬",
+                23: "估值结算：V = Σ现金流×Q×C−H−D，本轮收益/损失当场见分晓",
+            }
+            st.info(preview_map.get(st.session_state.step, "完成本步后继续推进 24 步流程；每步决策都真实扣款/生效，写审计日志、可撤销。"))
             st.divider()
             st.markdown("### ⚖️ 估值引擎拆解（每个字母都能看懂）")
             st.markdown("""
@@ -1003,70 +1067,6 @@ def render_sidebar():
             st.caption("每步操作写入审计日志，可回滚、可追溯")
         else:
             st.caption("选择行业与角色后开始实验")
-
-
-# ========== 运营驾驶舱（v2026-10-21：集成 GitHub 社区组件 streamlit-antd-components，一眼看懂全局） ==========
-def _kpi_card(title, value, sub, c1, c2):
-    return (f'<div style="flex:1;min-width:210px;background:linear-gradient(135deg,{c1},{c2});'
-            f'border-radius:14px;padding:16px 18px;color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.14)">'
-            f'<div style="font-size:13px;opacity:.92">{title}</div>'
-            f'<div style="font-size:26px;font-weight:800;margin-top:4px">{value}</div>'
-            f'<div style="font-size:12px;opacity:.85;margin-top:2px">{sub}</div></div>')
-
-
-def render_tab_dashboard():
-    """运营驾驶舱：KPI 卡 + 六篇章步骤条 + 完成度 + 下一步预告 + 估值走势"""
-    if not st.session_state.started:
-        st.info("请先在「开局设置」召开首次董事会，驾驶舱会实时汇总你的经营状态。")
-        return
-    st.markdown("### 🚀 运营驾驶舱（一眼看懂全局：钱 · 数据 · 人 · 估值）")
-    vh = st.session_state.val_history
-    last = vh[-1] if vh else None
-    team = st.session_state.team
-    health = (team["cap"] + team["mot"] + team["ret"]) / 3
-    used = INIT_BUDGET - st.session_state.budget
-    cards = "".join([
-        _kpi_card("资产净值 V", f"{last['v']}万" if last else "未结算", f"第 {last['round']} 轮" if last else "完成第 23 步后出值", "#0D47A1", "#1E88E5"),
-        _kpi_card("剩余预算", fmt(st.session_state.budget), f"已用 {fmt(used)}", "#2E7D32", "#43A047"),
-        _kpi_card("累计收入", fmt(st.session_state.revenue), "变现越多 V 越高", "#E65100", "#FB8C00"),
-        _kpi_card("团队健康度", f"{health:.0f}", f"能力{team['cap']}｜意愿{team['mot']}｜稳定{team['ret']}", "#6A1B9A", "#8E24AA"),
-    ])
-    md_html(f'<div style="display:flex;gap:12px;flex-wrap:wrap">{cards}</div>')
-    st.markdown("")
-    # 六篇章步骤条（sAC Steps，当前所在篇高亮）
-    cur_ph = next((i for i, ph in enumerate(PHASES) if st.session_state.step in ph["steps"]), 0)
-    st.markdown("### 🗺️ 六篇章进度（当前所在篇高亮，右侧「决策台」照做即可）")
-    steps_items = []
-    for ph in PHASES:
-        done_n = len([s for s in ph["steps"] if s in st.session_state.done])
-        steps_items.append(sac.StepsItem(
-            title=("✅ " if done_n == len(ph["steps"]) else "") + ph["name"],
-            subtitle=f"{done_n}/{len(ph['steps'])} 步",
-        ))
-    sac.steps(steps_items, index=cur_ph, size="small", color="#1E88E5")
-    total_done = len([s for s in st.session_state.done if s <= 24])
-    st.progress(total_done / 24, text=f"24 步完成度 {total_done}/24")
-    st.markdown("")
-    # 下一步后果预告（sAC Alert）
-    st.markdown("### ⏭️ 下一步该做什么")
-    sac.alert(label=PREVIEW_MAP.get(st.session_state.step, "完成本步后继续推进 24 步流程；每步决策都真实生效、可撤销。"), color="info")
-    # 估值走势
-    if last:
-        st.markdown("### 📈 估值走势（三轮 V 净值对比）")
-        dfv = pd.DataFrame(vh)[["round", "v"]].rename(columns={"round": "轮次", "v": "V净值(万)"})
-        cA, cB = st.columns([3, 2])
-        with cA:
-            st.line_chart(dfv.set_index("轮次"), height=240)
-        with cB:
-            st.markdown("**最新估值明细**")
-            st.dataframe(pd.DataFrame([{
-                "轮次": last["round"], "V(万)": last["v"], "Q": last["q"], "C": last["c"],
-                "H(万)": last["h"], "D(万)": last["d"], "T": last.get("t_score", 0),
-            }]), use_container_width=True, hide_index=True)
-            if last["v"] <= 0:
-                st.warning("V 为 0/负：合规罚没或持有成本过高，见「估值中心」诊断与解法。")
-    else:
-        st.info("完成本轮「步骤 23 第三方估值」结算后，这里显示三轮 V 走势与最新明细。")
 
 # ========== Tab0：实验导览（实验说明书式） ==========
 def render_tab0():
@@ -2555,11 +2555,10 @@ def main():
     if not st.session_state.started:
         render_tab0()
         return
-    tab0, tabd, tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📖 实验导览", "🚀 运营驾驶舱", "📋 决策台（24步）", "⚖️ 估值中心", "👥 团队激励", "🎓 教师端", "📝 复盘报告",
+    tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📖 实验导览", "📋 决策台（24步）", "⚖️ 估值中心", "👥 团队激励", "🎓 教师端", "📝 复盘报告",
     ])
     with tab0: render_tab0()
-    with tabd: render_tab_dashboard()
     with tab1: render_tab1()
     with tab2: render_tab2()
     with tab3: render_tab3()
