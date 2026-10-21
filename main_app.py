@@ -9,7 +9,7 @@ main_app.py
     C = 合规系数（行业天花板内，可归零罚没对外收入）
     H = H_基准 + 采集量增量×单位存储成本（每轮独立）
     D = min(事件比例, 30%)（一次性计提）
-  - 4 行业（制造/零售/医疗/能源）× 6 篇章 × 24 步 × 3 轮估值
+  - 4 行业（制造/零售/医疗/能源）× 6 篇章 × 25 步 × 3 轮估值
   - 三轮节奏：第一轮普遍上涨 → 第二轮事件卡集体回调 → 第三轮分化
   - 20 张事件卡（P-/W-/C-/T- 各 5 张），五条下跌路径自动触发
   - 团队三维状态（能力/意愿/稳定）+ 6 工具激励设计器 + 隐藏规则
@@ -379,14 +379,14 @@ REFERENCE_DOCS = [
     "《中华人民共和国个人信息保护法》《中华人民共和国数据安全法》",
 ]
 
-# ========== 24 步流程定义（6 篇章 × 4 步） ==========
+# ========== 25 步流程定义（6 篇章，末篇 5 步含问卷调查） ==========
 PHASES = [
     {"name": "投入篇", "steps": [1, 2, 3, 4], "aim": "定好团队与预算——开局底子"},
     {"name": "采集篇", "steps": [5, 6, 7, 8], "aim": "拿到数据并安全存好——原料入仓"},
     {"name": "治理篇", "steps": [9, 10, 11, 12], "aim": "清洗/脱敏/上架——提升 Q、守住 C"},
     {"name": "赋能篇", "steps": [13, 14, 15, 16], "aim": "建模并推广场景——让数据有用"},
     {"name": "变现篇", "steps": [17, 18, 19, 20], "aim": "产品化与签约——把数据卖成钱"},
-    {"name": "经营与估值篇", "steps": [21, 22, 23, 24], "aim": "激励团队、披露估值——算总账"},
+    {"name": "经营与估值篇", "steps": [21, 22, 23, 24, 25], "aim": "激励团队、披露估值、问卷收尾——算总账"},
 ]
 STEP_NAMES = {
     1: "召开董事会·组阁", 2: "盘点家底", 3: "制定三年战略", 4: "编制预算",
@@ -395,6 +395,7 @@ STEP_NAMES = {
     13: "赋能方案三选一", 14: "建模与验证", 15: "上线与推广", 16: "效果度量",
     17: "产品化与数据变现", 18: "定价", 19: "签署数据交易合同", 20: "交付与运维",
     21: "团队激励投放", 22: "出表与披露", 23: "第三方估值", 24: "董事会答辩",
+    25: "问卷调查",
 }
 # 默认投放事件卡（自动触发下跌）
 DEFAULT_EVENTS = {2: ["P-04", "C-01", "W-02"], 3: ["W-04", "T-03"]}
@@ -424,6 +425,8 @@ def init_state():
         "audit_trail": {},                            # S7 审计留痕勾选 {轮次: bool}
         # v8.4 新增字段
         "custom_incentives": {},                      # 自定义激励方案 {轮次: {name, type, cost, ...}}
+        # v25 新增字段
+        "survey": {},                                 # 第25步问卷调查 {轮次: {q1,q2,q3,q4,q5}}
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -1035,7 +1038,7 @@ def render_sidebar():
                 21: "激励：预算=现金×15%（上限50万），不能全选；纯金钱下轮意愿反噬",
                 23: "估值结算：V = Σ现金流×Q×C−H−D，本轮收益/损失当场见分晓",
             }
-            st.info(preview_map.get(st.session_state.step, "完成本步后继续推进 24 步流程；每步决策都真实扣款/生效，写审计日志、可撤销。"))
+            st.info(preview_map.get(st.session_state.step, "完成本步后继续推进 25 步流程；每步决策都真实扣款/生效，写审计日志、可撤销。"))
             st.divider()
             st.markdown("### ⚖️ 估值引擎拆解（每个字母都能看懂）")
             st.markdown("""
@@ -1049,8 +1052,8 @@ def render_sidebar():
             st.caption("记忆口诀：先看能赚多少（①），再看数据好不好（②③打折），最后扣掉养数据的钱（④）和踩坑的损失（⑤）。")
             st.divider()
             st.markdown("### 🗺️ 流程进度（点击任意格子跳转，右侧内容同步切换）")
-            total_done = len([s for s in st.session_state.done if s <= 24])
-            st.progress(total_done / 24, text=f"步骤 {total_done}/24")
+            total_done = len([s for s in st.session_state.done if s <= 25])
+            st.progress(total_done / 25, text=f"步骤 {total_done}/25")
             for ph in PHASES:
                 cols = st.columns(len(ph["steps"]))
                 for ci, s in enumerate(ph["steps"]):
@@ -1086,8 +1089,8 @@ def render_tab0():
     """)
     st.markdown("")
 
-    # 实验地图：6篇章24步流程条
-    st.markdown("### 🗺️ 实验地图：24 步决策全流程（从上到下依次完成）")
+    # 实验地图：6篇章25步流程条
+    st.markdown("### 🗺️ 实验地图：25 步决策全流程（从上到下依次完成）")
     flow_html = """
     <div style="display:flex;gap:10px;flex-wrap:nowrap;overflow-x:auto;padding:6px 0">
     {phases}
@@ -1160,7 +1163,7 @@ def render_tab0():
             - 培养面向真实企业的数据资产管理职业胜任力与批判性思维
             """)
     with st.expander("⚙️ 实验原理（核心要素仿真设计）", expanded=False):
-        st.markdown("本实验以**数据资产价值评估公式**为主线，把企业数据资产管理拆成 6 个篇章 24 步决策，每步决策真实扣款/生效并写入审计日志。实验覆盖 **12 个核心知识点**（数据资产化、确权登记、可信溯源、脱敏合规、价值评估、入表披露、团队激励、风险防控、数据交易、跨域治理、AI 辅助决策、复盘迭代）。")
+        st.markdown("本实验以**数据资产价值评估公式**为主线，把企业数据资产管理拆成 6 个篇章 25 步决策（含收尾问卷调查），每步决策真实扣款/生效并写入审计日志。实验覆盖 **12 个核心知识点**（数据资产化、确权登记、可信溯源、脱敏合规、价值评估、入表披露、团队激励、风险防控、数据交易、跨域治理、AI 辅助决策、复盘迭代）。")
         st.markdown("**核心仿真要素：**")
         c1, c2 = st.columns(2)
         with c1:
@@ -1180,11 +1183,11 @@ def render_tab0():
         st.markdown("**总学时 8 学时（课前 1 + 课中 6 + 课后 1）**")
         st.markdown("""
         - **课前 1 学时 · 自主预习**：阅读行业基线表与估值公式，完成行业选择预研（SWOT 素材），带着「选哪行、避哪个坑」进入课堂
-        - **课中 6 学时 · 师生联动**：教师端掌握事件卡投放节奏（教学「手柄」）与状态机（开放提交→关闭提交→结算只读）；学生按 24 步完成三轮决策，每轮结算后教师即时点评
+        - **课中 6 学时 · 师生联动**：教师端掌握事件卡投放节奏（教学「手柄」）与状态机（开放提交→关闭提交→结算只读）；学生按 25 步完成三轮决策，每轮结算后教师即时点评
         - **课后 1 学时 · 问题分析探究**：完成复盘三问（资产在哪步变质？激励哪项产生复利？模式搬到其他行业哪条失效？），提交后进入六维评分与特别奖评定
         """)
         st.markdown("**实验考核（申报口径：操作 60% + 报告 30% + 综合 10%）**：")
-        st.markdown("| 考核环节 | 权重 | 构成 |\n|---|---|---|\n| 实验操作过程 | 60% | 三轮 24 步决策完成度 + 估值净值 V + 操作审计留痕 |\n| 实验报告 | 30% | 复盘三问 + 估值报告 + 入表披露材料 |\n| 综合表现 | 10% | 课堂答辩 + 金点子创意 + 团队协作 |")
+        st.markdown("| 考核环节 | 权重 | 构成 |\n|---|---|---|\n| 实验操作过程 | 60% | 三轮 25 步决策完成度 + 估值净值 V + 操作审计留痕 |\n| 实验报告 | 30% | 复盘三问 + 估值报告 + 入表披露材料 |\n| 综合表现 | 10% | 课堂答辩 + 金点子创意 + 团队协作 |")
         st.caption("课中另有六维过程评价（V 终值 30% / Q×C 20% / 入表合规 15% / 团队健康 15% / 战略迭代 10% / 复盘深度 10%），与申报考核口径相互校验。")
     with st.expander("💻 实验必读（运行环境要求）", expanded=False):
         st.markdown("""
@@ -1231,7 +1234,7 @@ def render_tab0():
         ind = INDUSTRIES[st.session_state.industry]
         st.success(f"**实验进行中**：行业={st.session_state.industry}·{ind['name']}，角色={st.session_state.role}，当前第 {st.session_state.round} 轮")
         st.markdown(f"**你的行业基线**：Q 初始 {ind['q0']} ｜ C 天花板 {ind['c_cap']} ｜ H 基准 {ind['h_base']}万/轮 ｜ 单位存储 {ind['unit_storage']}万/TB ｜ 典型陷阱：{ind['trap']}")
-        st.markdown("**24 步决策流程**：投入篇(1-4) → 采集篇(5-8) → 治理篇(9-12) → 赋能篇(13-16) → 变现篇(17-20) → 经营与估值篇(21-24)")
+        st.markdown("**25 步决策流程**：投入篇(1-4) → 采集篇(5-8) → 治理篇(9-12) → 赋能篇(13-16) → 变现篇(17-20) → 经营与估值篇(21-25，含问卷收尾)")
         if st.button("🔄 重置实验"):
             for k in list(st.session_state.keys()):
                 if k not in ("started",):
@@ -1245,7 +1248,7 @@ def render_tab0():
         st.markdown(f"- {doc}")
     st.caption("实验中的估值模型、确权登记流程、入表计量与脱敏要求均按上述国家标准与政策文件设计，供课后查证。")
 
-# ========== Tab1：24 步决策台 ==========
+# ========== Tab1：25 步决策台 ==========
 def render_tab1():
     if not st.session_state.started:
         st.info("请先在「实验导览」选择行业与角色并开始实验")
@@ -1260,32 +1263,32 @@ def render_tab1():
         return
 
     # 篇章导航
-    st.markdown("### 📋 24 步决策台（第 {r} 轮）".format(r=r))
+    st.markdown("### 📋 25 步决策台（第 {r} 轮）".format(r=r))
     cur_phase = next((ph for ph in PHASES if st.session_state.step in ph["steps"]), PHASES[0])
     cols = st.columns(6)
     for i, ph in enumerate(PHASES):
         done_n = len([s for s in ph["steps"] if s in st.session_state.done])
         with cols[i]:
             st.markdown(f"**{ph['name']}** {'⭐' if ph is cur_phase else ''}")
-            st.progress(done_n / 4, text=f"{done_n}/4")
+            st.progress(done_n / len(ph["steps"]), text=f"{done_n}/{len(ph['steps'])}")
     # 当前步骤引导条
     stp = st.session_state.step
-    if stp <= 24:
+    if stp <= 25:
         prev_part = f"<span style='color:#43A047;font-weight:600'>← {STEP_NAMES[stp-1]} ✅</span>" if stp > 1 and (stp-1) in st.session_state.done else ("<span style='color:#B0BEC5'>← 起点</span>" if stp == 1 else f"<span style='color:#90A4AE'>← {STEP_NAMES[stp-1]}</span>")
         cur_part = f"<span style='background:#1E88E5;color:#fff;border-radius:8px;padding:2px 10px;font-weight:800'>📍 第{stp}步 · {STEP_NAMES[stp]}</span>"
-        nxt_part = f"<span style='color:#90A4AE'>→ {STEP_NAMES[stp+1]}</span>" if stp < 24 else ""
+        nxt_part = f"<span style='color:#90A4AE'>→ {STEP_NAMES[stp+1]}</span>" if stp < 25 else ""
         st.markdown(f"<div style='background:#F5F9FF;border:1px solid #BBDEFB;border-radius:10px;padding:8px 14px;font-size:14px'>{prev_part}　{cur_part}　{nxt_part}</div>", unsafe_allow_html=True)
     st.markdown("")
     step = st.session_state.step
-    if step >= 24 and 24 in st.session_state.done:
-        st.info("24 步全部完成（估值已在步骤23计算入库）。确认本轮结算后锁定只读，可开放下一轮。")
+    if step >= 25 and 25 in st.session_state.done:
+        st.info("25 步全部完成（估值已在步骤23计算入库，问卷已在步骤25提交）。确认本轮结算后锁定只读，可开放下一轮。")
         if st.button("✅ 完成本轮（结算锁定）", type="primary"):
             st.session_state.settled.add(st.session_state.round)
             record(f"第{st.session_state.round}轮·结算锁定", "本轮只读")
             st.rerun()
         return
-    if step > 24:
-        st.info("24 步全部完成（估值已在步骤23计算入库）。确认本轮结算后锁定只读，可开放下一轮。")
+    if step > 25:
+        st.info("25 步全部完成（估值已在步骤23计算入库，问卷已在步骤25提交）。确认本轮结算后锁定只读，可开放下一轮。")
         if st.button("✅ 完成本轮（结算锁定）", type="primary"):
             st.session_state.settled.add(st.session_state.round)
             record(f"第{st.session_state.round}轮·结算锁定", "本轮只读")
@@ -1294,7 +1297,7 @@ def render_tab1():
 
     step_ui(step)
     render_step(step)
-    if step_done(step) and step < 24:
+    if step_done(step) and step < 25:
         if st.button(f"下一步 →（步骤{step+1}：{STEP_NAMES[step+1]}）", type="primary"):
             st.session_state.step += 1
             st.rerun()
@@ -1960,9 +1963,9 @@ def render_step(step):
             st.markdown("### 📋 下一轮按步操作建议（总结版，照着做就行）")
             for item in st.session_state.action_plan.get(st.session_state.round, []):
                 st.markdown(f"- {item}")
-            with st.expander("📋 完整版：先复盘第 1-24 步 → 再梳理做得好/不好 → 最后逐条建议 + 理由"):
+            with st.expander("📋 完整版：先复盘第 1-25 步 → 再梳理做得好/不好 → 最后逐条建议 + 理由"):
                 goods, bads = gen_round_review(st.session_state.decisions, last)
-                st.markdown("**① 本轮操作复盘（按 1-24 步梳理）**")
+                st.markdown("**① 本轮操作复盘（按 1-25 步梳理）**")
                 st.markdown(f"**✅ 做得好**：{'；'.join(goods)}")
                 st.markdown(f"**⚠️ 待改进**：{'；'.join(bads)}")
                 st.markdown("**② 逐条建议 + 理由**")
@@ -1974,6 +1977,23 @@ def render_step(step):
         if st.button("✅ 提交答辩记录（免费）", disabled=step_done(step)):
             st.session_state.decisions["defense"] = note
             mark_done(24, "董事会答辩")
+            st.rerun()
+    elif step == 25:
+        # v25：问卷调查（实验收尾反馈，不扣预算、不计入估值，仅供教师端汇总与教学改进）
+        st.markdown("**问卷调查**：本轮 24 步决策已全部走完。结束前花 1 分钟反馈真实感受——问卷**不扣预算、不影响估值**，答案会汇总到教师端，作为课程优化依据。")
+        st.info("💡 问卷是「实验的镜子」：你填的内容将出现在教师端「问卷调查汇总」，不参与 V/Q/C/H/D 任何计算。")
+        rnd = st.session_state.round
+        q1 = st.radio("Q1 本轮收获最大的环节是？（单选）", ["投入与组阁", "数据采集", "治理与脱敏", "赋能建模", "变现定价", "经营估值"], index=None, key=f"sv1_{rnd}")
+        q2 = st.radio("Q2 估值公式 V = Σ(场景现金流/1.1ᵗ) × Q × C − H − D，你现在的理解程度？（单选）", ["完全理解，能独立计算", "基本理解，对照公示会算", "部分理解，需要提示", "没理解，需要补讲"], index=None, key=f"sv2_{rnd}")
+        q3 = st.slider("Q3 本轮团队激励效果，你打几分？（1-5）", 1, 5, 3, key=f"sv3_{rnd}")
+        q4 = st.radio("Q4 事件卡带来的压力与你的应对，你的感受是？（单选）", ["很有挑战，应对从容", "有压力但扛住了", "压力较大，有些手忙脚乱", "没感觉，影响不大"], index=None, key=f"sv4_{rnd}")
+        q5 = st.text_area("Q5 开放建议：本轮哪一步让你最困惑？或你想对老师说的话？（选填）", height=90, key=f"sv5_{rnd}")
+        if st.button("✅ 提交问卷（免费，汇总至教师端）", disabled=step_done(25)):
+            st.session_state.survey[rnd] = {
+                "q1": q1 or "未选", "q2": q2 or "未选", "q3": q3, "q4": q4 or "未选", "q5": (q5 or "").strip(),
+            }
+            record(f"第{rnd}轮·问卷调查", "已提交")
+            mark_done(25, "问卷调查")
             st.rerun()
 
 def render_incentives():
@@ -2109,7 +2129,7 @@ def render_tab2():
         return
     st.markdown("### ⚖️ 估值中心（三轮估值曲线 + 公式公开）")
     if not st.session_state.val_history:
-        st.info("尚未结算任何轮次。完成 24 步后在「决策台」点击「结算本轮估值」。")
+        st.info("尚未结算任何轮次。完成 25 步后在「决策台」点击「结算本轮估值」。")
     # 估值曲线
     if st.session_state.val_history:
         df = pd.DataFrame(st.session_state.val_history)[["round", "v", "q", "c", "h", "d", "cash_in", "cash_out", "pv"]]
@@ -2368,6 +2388,25 @@ def render_tab4():
         if st.button("⚖️ 计算终局六维评分（真实计算）", type="primary"):
             compute_eval()
             st.rerun()
+    st.divider()
+    # 问卷调查汇总（第 25 步，v25 新增）
+    st.markdown("#### 📋 问卷调查汇总（第 25 步，各轮）")
+    if not st.session_state.survey:
+        st.caption("暂无问卷提交。学生完成第 25 步问卷后在此汇总（不参与估值计算）。")
+    else:
+        sv_rows = []
+        for rnd in sorted(st.session_state.survey):
+            sv = st.session_state.survey[rnd]
+            sv_rows.append({
+                "轮次": f"第{rnd}轮",
+                "收获最大环节": sv.get("q1", "—"),
+                "公式理解": sv.get("q2", "—"),
+                "激励评分": sv.get("q3", "—"),
+                "事件应对": sv.get("q4", "—"),
+                "开放建议": sv.get("q5", "—") or "—",
+            })
+        st.dataframe(pd.DataFrame(sv_rows), use_container_width=True, hide_index=True)
+        st.caption("问卷答案仅用于教学改进参考，不计入估值与六维评分。")
 
 def adopt_gold_idea(rid):
     """v2.0 新增⑩：教师采纳金点子 → 稳定+10 意愿+10，该轮估值 V +5%"""
@@ -2474,7 +2513,7 @@ def render_tab5():
     if vh:
         last = vh[-1]
         d = st.session_state.decisions
-        st.markdown("### 📋 ① 操作步骤概况（你 1-24 步做了什么）")
+        st.markdown("### 📋 ① 操作步骤概况（你 1-25 步做了什么）")
         op = last.get("ops", {})
         op_rows = [
             {"步骤段": "1-4 投入篇", "做了什么": f"行业={st.session_state.industry}｜战略={op.get('战略','-')}｜已投入={op.get('累计投入万','-')}万"},
@@ -2482,7 +2521,7 @@ def render_tab5():
             {"步骤段": "9-12 治理篇", "做了什么": f"脱敏={op.get('脱敏','-')}"},
             {"步骤段": "13-16 赋能篇", "做了什么": f"赋能={op.get('赋能','-')}"},
             {"步骤段": "17-20 变现篇", "做了什么": f"定价={op.get('定价','-')}｜激励={op.get('激励方案','-')}"},
-            {"步骤段": "21-24 经营篇", "做了什么": "已结算估值 + 董事会答辩" if st.session_state.reflection or last.get("round") else "待完成"},
+            {"步骤段": "21-25 经营与问卷篇", "做了什么": "已结算估值 + 董事会答辩 + 问卷调查" if st.session_state.reflection or last.get("round") else "待完成"},
         ]
         st.dataframe(pd.DataFrame(op_rows), use_container_width=True, hide_index=True)
         st.markdown("### 💼 ② 数据资产概况（含 V 净值）")
@@ -2564,7 +2603,7 @@ def main():
         render_tab0()
         return
     tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📖 实验导览", "📋 决策台（24步）", "⚖️ 估值中心", "👥 团队激励", "🎓 教师端", "📝 复盘报告",
+        "📖 实验导览", "📋 决策台（25步）", "⚖️ 估值中心", "👥 团队激励", "🎓 教师端", "📝 复盘报告",
     ])
     with tab0: render_tab0()
     with tab1: render_tab1()
