@@ -6,3 +6,4 @@ audit_logs/
 data_cache/
 .streamlit/
 .DS_Store
+data/

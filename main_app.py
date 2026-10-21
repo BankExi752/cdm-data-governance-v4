@@ -19,6 +19,7 @@ main_app.py
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import os, csv, threading, time as _time, re
 
 # ========== 页面配置 ==========
 import textwrap
@@ -427,6 +428,8 @@ def init_state():
         "custom_incentives": {},                      # 自定义激励方案 {轮次: {name, type, cost, ...}}
         # v25 新增字段
         "survey": {},                                 # 第25步问卷调查 {轮次: {q1,q2,q3,q4,q5}}
+        "student": None,                              # 实名注册 {班级, 学号, 姓名}
+        "teacher_authed": False,                      # 教师端口令门控
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -435,6 +438,191 @@ def init_state():
 init_state()
 
 # ========== 公共工具函数 ==========
+
+# ===== 教师端数据层（对照「金税四期·教师端代码说明」补齐：students/logs/assessments CSV） =====
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+_io_lock = threading.Lock()
+TEACHER_PASS = "tax2026"  # 教师端默认口令，正式比赛/演示前请修改并重新部署
+
+
+def _read_csv(name):
+    """读取 data/ 下 CSV；不存在返回 []；空单元格不再变 NaN（修复导出崩溃的关键）"""
+    path = os.path.join(DATA_DIR, name)
+    if not os.path.exists(path):
+        return []
+    with _io_lock:
+        try:
+            return pd.read_csv(path, dtype=str, keep_default_na=False).to_dict("records")
+        except Exception:
+            return []
+
+
+def _append_csv(name, row, cols):
+    """追加一行到 data/ 下 CSV（首次自动建表头，线程锁防并发写坏）"""
+    path = os.path.join(DATA_DIR, name)
+    with _io_lock:
+        try:
+            os.makedirs(DATA_DIR, exist_ok=True)
+            fresh = not os.path.exists(path)
+            with open(path, "a", encoding="utf-8-sig", newline="") as f:
+                w = csv.writer(f)
+                if fresh:
+                    w.writerow(cols)
+                w.writerow(row)
+        except Exception:
+            pass
+
+
+def _esc(s):
+    """HTML 转义，防止学生输入破坏表格"""
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _reg_name(klass, sid):
+    for r in _read_csv("students.csv"):
+        if str(r.get("班级", "")).strip() == str(klass).strip() and str(r.get("学号", "")).strip() == str(sid).strip():
+            return str(r.get("姓名", ""))
+    return "未注册"
+
+
+def _reg_time(klass, sid):
+    for r in _read_csv("students.csv"):
+        if str(r.get("班级", "")).strip() == str(klass).strip() and str(r.get("学号", "")).strip() == str(sid).strip():
+            return str(r.get("注册时间", ""))
+    return ""
+
+
+def save_student(klass, sid, name):
+    """实名注册落库；同班同学号返回 False（防顶替）"""
+    for r in _read_csv("students.csv"):
+        if str(r.get("班级", "")).strip() == str(klass).strip() and str(r.get("学号", "")).strip() == str(sid).strip():
+            return False
+    _append_csv("students.csv", [klass, sid, name, _time.strftime("%Y-%m-%d %H:%M:%S")],
+                ["班级", "学号", "姓名", "注册时间"])
+    append_log("注册", f"班级 {klass} · 学号 {sid} · 姓名 {name}")
+    return True
+
+
+def append_log(action, detail, step=None, v=None, total=None, outcome=None):
+    """操作留痕：注册/开始实验/每步完成/撤销/结算/问卷提交均写入 data/logs.csv"""
+    s = st.session_state
+    try:
+        stu = s.get("student", {})
+        sid = str(stu.get("学号", ""))
+        name = str(stu.get("姓名", ""))
+        klass = str(stu.get("班级", ""))
+    except Exception:
+        sid = name = klass = ""
+    _append_csv("logs.csv", [
+        _time.strftime("%Y-%m-%d %H:%M:%S"), str(klass), str(sid), str(name),
+        str(action), str(detail),
+        "" if step is None else str(step),
+        "" if v is None else str(v),
+        "" if total is None else str(total),
+        "" if outcome is None else str(outcome),
+    ], ["时间", "班级", "学号", "姓名", "操作", "详情", "步骤", "估值V", "六维总分", "定性"])
+
+
+def aggregate_student(klass, sid):
+    """从日志聚合单个学生的成绩档案（完成步数 / 最新估值V / 六维总分 / 问卷激励均分 / 定性）"""
+    rows = [r for r in _read_csv("logs.csv")
+            if str(r.get("班级", "")).strip() == str(klass).strip()
+            and str(r.get("学号", "")).strip() == str(sid).strip()]
+    steps, v_latest, total_latest, outcome, last = set(), None, None, "", ""
+    q3_vals = []
+    for r in rows:
+        if str(r.get("步骤", "")).strip().isdigit():
+            steps.add(int(str(r["步骤"]).strip()))
+        if str(r.get("时间", "")).strip():
+            last = str(r["时间"])
+        if str(r.get("操作", "")).strip() == "结算估值":
+            raw = str(r.get("估值V", "")).strip()
+            if raw and raw.lower() not in ("nan", "none"):
+                try:
+                    v_latest = float(raw)
+                except ValueError:
+                    pass
+            outcome = "已结算"
+        if str(r.get("操作", "")).strip() == "六维评分" and str(r.get("六维总分", "")).strip():
+            try:
+                total_latest = float(str(r["六维总分"]).strip())
+            except ValueError:
+                pass
+        if str(r.get("操作", "")).strip() == "问卷调查":
+            det = str(r.get("详情", ""))
+            m = re.search(r"Q3激励=(\d)", det)
+            if m:
+                try:
+                    q3_vals.append(float(m.group(1)))
+                except ValueError:
+                    pass
+    q3_avg = round(sum(q3_vals) / len(q3_vals), 1) if q3_vals else None
+    return {
+        "班级": klass, "学号": sid, "姓名": _reg_name(klass, sid),
+        "注册时间": _reg_time(klass, sid), "完成步数": len(steps),
+        "最新估值V": v_latest, "六维总分": total_latest,
+        "问卷激励均分": q3_avg, "定性": outcome or "未结算", "最后活动": last,
+    }
+
+
+def export_scores_df(klass=None):
+    """教师端成绩表：每个学生一行（按班级过滤可选；实时聚合自操作日志）"""
+    stus = _read_csv("students.csv")
+    recs = []
+    for r in stus:
+        k, sid = str(r.get("班级", "")).strip(), str(r.get("学号", "")).strip()
+        if klass and klass != "全部班级" and k != klass:
+            continue
+        recs.append(aggregate_student(k, sid))
+    df = pd.DataFrame(recs, columns=["班级", "学号", "姓名", "注册时间", "完成步数",
+                                     "最新估值V", "六维总分", "问卷激励均分", "定性", "最后活动"])
+    return df.sort_values(["班级", "学号"]).reset_index(drop=True)
+
+
+def save_assessment(klass, sid, comment):
+    """教师评估保存到 data/assessments.csv（同学生覆盖更新）"""
+    rows = _read_csv("assessments.csv")
+    now = _time.strftime("%Y-%m-%d %H:%M:%S")
+    for i, r in enumerate(rows):
+        if str(r.get("班级", "")).strip() == str(klass).strip() and str(r.get("学号", "")).strip() == str(sid).strip():
+            rows[i]["评语"] = comment
+            rows[i]["评估时间"] = now
+            break
+    else:
+        rows.append({"班级": klass, "学号": sid, "评语": comment, "评估时间": now})
+    path = os.path.join(DATA_DIR, "assessments.csv")
+    with _io_lock:
+        try:
+            os.makedirs(DATA_DIR, exist_ok=True)
+            pd.DataFrame(rows).to_csv(path, index=False, encoding="utf-8-sig")
+        except Exception:
+            pass
+
+
+def html_table(df, max_rows=60):
+    """成绩表格 HTML 渲染（替代 st.dataframe，避免 pyarrow 依赖）"""
+    if df is None or len(df) == 0:
+        return "<div style='color:#64748b;font-size:13px;padding:8px'>暂无数据</div>"
+    cols = list(df.columns)
+    head = "".join(f"<th style='border:1px solid #e2e8f0;padding:6px 10px;background:#f1f5f9;"
+                   f"color:#2563eb;font-size:12px;text-align:left'>{_esc(c)}</th>" for c in cols)
+    body = ""
+    for i, (_, r) in enumerate(df.head(max_rows).iterrows()):
+        bg = "#ffffff" if i % 2 == 0 else "#f8fafc"
+        tds = ""
+        for c in cols:
+            v = r[c]
+            txt = "" if v is None or (isinstance(v, float) and pd.isna(v)) else str(v)
+            tds += f"<td style='border:1px solid #e2e8f0;padding:6px 10px;color:#334155;font-size:12px'>{_esc(txt)}</td>"
+        body += f"<tr style='background:{bg}'>{tds}</tr>"
+    more = (f"<div style='color:#64748b;font-size:12px;padding:6px 2px'>"
+            f"仅显示前 {max_rows} 行，共 {len(df)} 行——导出 CSV 可查看全部</div>" if len(df) > max_rows else "")
+    return (f"<div style='overflow-x:auto;border:1px solid #e2e8f0;border-radius:8px;background:#ffffff'>"
+            f"<table style='border-collapse:collapse;width:100%'><thead><tr>{head}</tr></thead>"
+            f"<tbody>{body}</tbody></table>{more}</div>")
+
+
+# ===== 教师端数据层结束 =====
 def fmt(v):
     """万元格式化"""
     return f"{v/10000:.0f}万"
@@ -461,6 +649,7 @@ def mark_done(step, name):
     st.session_state.done.add(step)
     st.session_state.undo_stack.append(step)
     record(f"步骤{step}·{name}", "完成")
+    append_log("完成步骤", name, step=step)
 
 def undo_last():
     """撤销最近一步已完成的操作"""
@@ -470,6 +659,7 @@ def undo_last():
     stp = st.session_state.undo_stack.pop()
     st.session_state.done.discard(stp)
     record(f"步骤{stp}·撤销", "回退")
+    append_log("撤销", f"步骤{stp}回退", step=stp)
     st.rerun()
 
 def open_next_round():
@@ -802,6 +992,7 @@ def run_valuation():
     }
     st.session_state.val_history.append(val)
     record(f"第{r}轮·估值计算", f"V={v}万")
+    append_log("结算估值", f"第{r}轮 V={v}万", step=23, v=v, outcome="已结算")
     # v2026-10-20：结算后生成「下一轮按步操作建议」→ 写入侧边栏「下一轮待办」
     prev_v = st.session_state.val_history[-2] if len(st.session_state.val_history) >= 2 else None
     st.session_state.action_plan[r] = gen_action_plan(st.session_state.decisions, st.session_state.industry, val, prev_v)
@@ -1202,6 +1393,30 @@ def render_tab0():
     if not st.session_state.started:
         st.markdown("### 🎮 开局设置（董事会视角：选行业 → 组阁 → 盘点 → 定首轮预算）")
         st.info("💡 你是**董事会成员**，不是执行者——钱怎么分、人怎么配、风险接不接受，都得自己拍板。第一轮先召开首次董事会，完成「选行业 → 组阁（组建团队）→ 盘点家底 → 定首轮预算」四项决策。")
+        # v25 实名注册门控（对照教师端规范：注册后操作留痕到 data/logs.csv，教师端按班级/学号聚合成绩）
+        st.markdown("#### 🪪 实名注册（教师端留痕必需，同班同学号不可重复）")
+        if st.session_state.get("student"):
+            stu = st.session_state.student
+            st.success(f"已注册：{stu.get('班级')} · {stu.get('学号')} · {stu.get('姓名')}")
+        else:
+            reg_c1, reg_c2, reg_c3 = st.columns(3)
+            with reg_c1:
+                reg_klass = st.text_input("班级", key="reg_klass", placeholder="如 财管2401")
+            with reg_c2:
+                reg_sid = st.text_input("学号", key="reg_sid", placeholder="如 20240001")
+            with reg_c3:
+                reg_name = st.text_input("姓名", key="reg_name", placeholder="你的真实姓名")
+            if st.button("📝 确认注册（防顶替校验）"):
+                if not (reg_klass.strip() and reg_sid.strip() and reg_name.strip()):
+                    st.warning("班级 / 学号 / 姓名不能为空。")
+                elif save_student(reg_klass.strip(), reg_sid.strip(), reg_name.strip()):
+                    st.session_state.student = {"班级": reg_klass.strip(), "学号": reg_sid.strip(), "姓名": reg_name.strip()}
+                    st.success(f"注册成功：{reg_klass.strip()} · {reg_sid.strip()} · {reg_name.strip()}")
+                    st.rerun()
+                else:
+                    st.error("该班级下此学号已注册（防顶替）——请确认学号或联系老师。")
+            st.caption("注册后本实验全部操作（每步提交/撤销/结算/问卷）将实时留痕到教师端；不注册也可试玩，但教师端无法按学号聚合你的成绩。")
+        st.divider()
         # 四行业对比卡
         ind_rows = []
         for k, ind in INDUSTRIES.items():
@@ -1229,6 +1444,7 @@ def render_tab0():
             st.session_state.round = 1
             st.session_state.step = 1
             record("开始实验", f"行业={ind_key}，角色={role}")
+            append_log("开始实验", f"行业={ind_key}，角色={role}")
             st.rerun()
     else:
         ind = INDUSTRIES[st.session_state.industry]
@@ -1993,6 +2209,7 @@ def render_step(step):
                 "q1": q1 or "未选", "q2": q2 or "未选", "q3": q3, "q4": q4 or "未选", "q5": (q5 or "").strip(),
             }
             record(f"第{rnd}轮·问卷调查", "已提交")
+            append_log("问卷调查", f"Q1={q1 or '未选'};Q2={q2 or '未选'};Q3激励={q3};Q4={q4 or '未选'};Q5={(q5 or '').strip()[:40]}", step=25, outcome="已提交")
             mark_done(25, "问卷调查")
             st.rerun()
 
@@ -2305,8 +2522,20 @@ def render_tab3():
 
 # ========== Tab4：教师端 ==========
 def render_tab4():
-    st.markdown("### 🎓 教师端（事件卡投放器 + 本轮状态机 + 六维评分）")
-    st.caption("Phase 1 单组原型版：教师端控制节奏——事件卡是教学的「手柄」，不能交给系统自动随机。")
+    st.markdown("### 🎓 教师端（事件卡投放器 + 本轮状态机 + 六维评分 + 学生数据后台）")
+    st.caption("对照「教师端代码说明」补齐：口令门控 · 实名注册留痕 · 按班级聚合成绩 · 评估 · CSV 导出。")
+    # ── 口令门控（默认 tax2026，正式使用前请修改 TEACHER_PASS 常量） ──
+    if not st.session_state.get("teacher_authed"):
+        st.markdown("**教师口令**：请输入教师口令进入后台。")
+        pwd = st.text_input("教师口令", key="teacher_pwd", type="password")
+        if st.button("🔑 进入教师端", key="teacher_login", type="primary"):
+            if pwd == TEACHER_PASS:
+                st.session_state.teacher_authed = True
+                st.success("教师端登录成功：可查看学生成绩、操作记录、评估并按班级导出。")
+                st.rerun()
+            else:
+                st.error("口令错误，请重试。")
+        return
     if not st.session_state.started:
         st.info("请先开始实验")
         return
@@ -2407,6 +2636,71 @@ def render_tab4():
             })
         st.dataframe(pd.DataFrame(sv_rows), use_container_width=True, hide_index=True)
         st.caption("问卷答案仅用于教学改进参考，不计入估值与六维评分。")
+    st.divider()
+    # ===== 学生数据后台（对照教师端规范：汇总卡 / 成绩表 / 导出 / 详情评估） =====
+    st.markdown("#### 📊 学生数据后台（实时聚合自 data/logs.csv）")
+    st.info("本地形态：数据写在应用目录 data/；已部署形态：云端实例共享 data/，学生操作实时留痕，教师在线查看。")
+    df = export_scores_df()
+    classes = sorted(df["班级"].unique().tolist()) if len(df) else []
+    # 汇总卡：学生数 / 完成实验数 / 平均估值V / 班级数
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("学生数", len(df))
+    m2.metric("已完成实验(≥25步)", int((df["完成步数"] >= 25).sum()) if len(df) else 0)
+    m3.metric("平均估值V(万)", f"{round(df['最新估值V'].mean(), 1)}" if len(df) and pd.notna(df["最新估值V"]).any() else "—")
+    m4.metric("班级数", len(classes))
+    # 班级筛选 + 成绩表
+    klass = st.selectbox("按班级筛选", ["全部班级"] + classes, key="teacher_klass_filter") if classes else "全部班级"
+    df2 = export_scores_df(klass)
+    st.markdown("**学生成绩表**（实时聚合自操作日志：完成步数 / 最新估值V / 六维总分 / 问卷激励均分）")
+    st.markdown(html_table(df2), unsafe_allow_html=True)
+    # 导出（成绩档案 / 操作日志）+ 退出
+    e1, e2, e3 = st.columns(3)
+    with e1:
+        st.download_button("📥 导出本班成绩档案（CSV）",
+                           df2.to_csv(index=False).encode("utf-8-sig"),
+                           file_name=f"cdm_vlab_{klass}_scores.csv", mime="text/csv",
+                           key="teacher_export_scores")
+    with e2:
+        logs = _read_csv("logs.csv")
+        if klass != "全部班级":
+            logs = [r for r in logs if str(r.get("班级", "")).strip() == klass.strip()]
+        st.download_button("📥 导出操作日志（CSV）",
+                           pd.DataFrame(logs).to_csv(index=False).encode("utf-8-sig"),
+                           file_name=f"cdm_vlab_{klass}_logs.csv", mime="text/csv",
+                           key="teacher_export_logs")
+    with e3:
+        if st.button("🚪 退出教师端", key="teacher_logout"):
+            st.session_state.teacher_authed = False
+            st.rerun()
+    # 学生详情 + 操作记录 + 教师评估
+    st.divider()
+    st.markdown("**学生详情与教师评估**（选中学生 → 查看完整操作记录 → 填写评估评语）")
+    if len(df2):
+        pick = st.selectbox("选择学生（学号 · 姓名）",
+                            [f"{r['学号']} · {r['姓名']}" for _, r in df2.iterrows()], key="teacher_pick")
+        sid = pick.split(" · ")[0]
+        row = df2[df2["学号"] == sid].iloc[0]
+        st.markdown(f"**{row['班级']} · {row['学号']} · {row['姓名']}** ｜ "
+                    f"完成 {row['完成步数']}/25 步 ｜ 最新估值 V {row['最新估值V'] if pd.notna(row['最新估值V']) else '—'} 万 ｜ "
+                    f"六维总分 {row['六维总分'] if pd.notna(row['六维总分']) else '—'} ｜ 定性 {row['定性']}")
+        sub = [r for r in _read_csv("logs.csv")
+               if str(r.get("班级", "")).strip() == str(row["班级"]).strip()
+               and str(r.get("学号", "")).strip() == sid.strip()]
+        st.markdown(f"**操作记录（{len(sub)} 条）**")
+        if sub:
+            st.markdown(html_table(pd.DataFrame(sub), max_rows=40), unsafe_allow_html=True)
+        prev = ""
+        for r in _read_csv("assessments.csv"):
+            if str(r.get("班级", "")).strip() == str(row["班级"]).strip() and \
+               str(r.get("学号", "")).strip() == sid.strip():
+                prev = r.get("评语", "")
+        comment = st.text_area(f"教师评语（{row['学号']}）", value=prev, key="teacher_comment")
+        if st.button("💾 保存评估", key="teacher_save_assess"):
+            save_assessment(str(row["班级"]), sid, comment)
+            st.success("评估已保存至 data/assessments.csv")
+            st.rerun()
+    else:
+        st.caption("暂无学生注册数据——学生完成实名注册后自动出现在这里。")
 
 def adopt_gold_idea(rid):
     """v2.0 新增⑩：教师采纳金点子 → 稳定+10 意愿+10，该轮估值 V +5%"""
@@ -2492,6 +2786,7 @@ def compute_eval():
         "team": round(team_score, 1), "strategy": round(strat_score, 1), "reflection": round(refl_score, 1),
         "total": total,
     }
+    append_log("六维评分", f"总分{total}", step=99, total=total, outcome="已评分")
     # 特别奖（增值评价）
     awards = []
     if len(vh) >= 2:
