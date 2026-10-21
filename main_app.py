@@ -429,6 +429,7 @@ def init_state():
         # v25 新增字段
         "survey": {},                                 # 第25步问卷调查 {轮次: {q1,q2,q3,q4,q5}}
         "student": None,                              # 实名注册 {班级, 学号, 姓名}
+        "klass": "",                                  # 班级编号登录（进入主界面前必填）
         "teacher_authed": False,                      # 教师端口令门控
     }
     for k, v in defaults.items():
@@ -1199,6 +1200,7 @@ def gen_round_review(d, val):
 def render_sidebar():
     with st.sidebar:
         st.markdown("## 🎯 数据资产运营总监")
+        st.markdown(f"**班级**：{st.session_state.get('klass', '—')}")
         if st.session_state.started:
             ind = INDUSTRIES[st.session_state.industry]
             st.markdown(f"**行业**：{st.session_state.industry}·{ind['name']}")
@@ -1395,20 +1397,20 @@ def render_tab0():
         st.info("💡 你是**董事会成员**，不是执行者——钱怎么分、人怎么配、风险接不接受，都得自己拍板。第一轮先召开首次董事会，完成「选行业 → 组阁（组建团队）→ 盘点家底 → 定首轮预算」四项决策。")
         # v25 实名注册门控（对照教师端规范：注册后操作留痕到 data/logs.csv，教师端按班级/学号聚合成绩）
         st.markdown("#### 🪪 实名注册（教师端留痕必需，同班同学号不可重复）")
+        st.markdown(f"**已登录班级**：`{st.session_state.klass}`（更换班级请刷新页面重新登录）")
         if st.session_state.get("student"):
             stu = st.session_state.student
             st.success(f"已注册：{stu.get('班级')} · {stu.get('学号')} · {stu.get('姓名')}")
         else:
-            reg_c1, reg_c2, reg_c3 = st.columns(3)
+            reg_c1, reg_c2 = st.columns(2)
             with reg_c1:
-                reg_klass = st.text_input("班级", key="reg_klass", placeholder="如 财管2401")
-            with reg_c2:
                 reg_sid = st.text_input("学号", key="reg_sid", placeholder="如 20240001")
-            with reg_c3:
+            with reg_c2:
                 reg_name = st.text_input("姓名", key="reg_name", placeholder="你的真实姓名")
             if st.button("📝 确认注册（防顶替校验）"):
+                reg_klass = st.session_state.klass
                 if not (reg_klass.strip() and reg_sid.strip() and reg_name.strip()):
-                    st.warning("班级 / 学号 / 姓名不能为空。")
+                    st.warning("学号 / 姓名不能为空。")
                 elif save_student(reg_klass.strip(), reg_sid.strip(), reg_name.strip()):
                     st.session_state.student = {"班级": reg_klass.strip(), "学号": reg_sid.strip(), "姓名": reg_name.strip()}
                     st.success(f"注册成功：{reg_klass.strip()} · {reg_sid.strip()} · {reg_name.strip()}")
@@ -2892,7 +2894,34 @@ def render_tab5():
         st.info("暂无操作记录")
 
 # ========== 主渲染 ==========
+def render_klass_login():
+    """最开始的班级编号登录面板：输入班级编号后才进入实验（教师端按班级聚合留痕/成绩）"""
+    st.markdown("")
+    md_html("""
+    <div style="max-width:680px;margin:36px auto 0;background:linear-gradient(135deg,#0F2B46,#1E88E5 60%,#64B5F6);border-radius:16px;padding:32px 40px;color:#fff;text-align:center">
+    <div style="font-size:40px">🎯</div>
+    <h1 style="margin:8px 0 6px;color:#fff">数据资产运营总监 · 虚拟仿真实验</h1>
+    <div style="font-size:15px;color:#E3F2FD">数据资产化与合规治理全生命周期经营决策 · 8 学时（课前1+课中6+课后1）</div>
+    </div>
+    """)
+    st.markdown("### 🔐 班级登录")
+    st.info("请输入你的**班级编号**进入实验。登录后需完成实名注册（学号/姓名），全部操作将实时留痕到教师端，教师按班级编号查看与导出成绩。")
+    with st.form("klass_login_form"):
+        klass = st.text_input("班级编号", key="klass_login_input", placeholder="如 财管2401")
+        submitted = st.form_submit_button("🔓 登录进入实验", type="primary")
+    if submitted:
+        if not klass.strip():
+            st.warning("请输入班级编号。")
+        else:
+            st.session_state.klass = klass.strip()
+            st.session_state.student = None  # 更换班级后需重新实名注册
+            st.rerun()
+
+
 def main():
+    if not st.session_state.get("klass"):
+        render_klass_login()
+        return
     render_sidebar()
     if not st.session_state.started:
         render_tab0()
